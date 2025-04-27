@@ -1,8 +1,8 @@
-﻿using Emgu.CV;
-using System.Drawing.Imaging;
+﻿using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using Emgu.CV;
 
-namespace ObjectTracingVideoImage.App.Extensions
+namespace ObjectTracingInVideoImage.App.Extensions
 {
     static class MatExtensions
     {
@@ -12,7 +12,6 @@ namespace ObjectTracingVideoImage.App.Extensions
             Rectangle rect = new Rectangle(0, 0, mat.Width, mat.Height);
             BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.WriteOnly, bitmap.PixelFormat);
 
-            // Pobieramy dane z obrazu Mat i kopiujemy je do Bitmap
             byte[] matData = new byte[mat.Width * mat.Height * mat.NumberOfChannels];
             Marshal.Copy(mat.DataPointer, matData, 0, matData.Length);
             Marshal.Copy(matData, 0, bitmapData.Scan0, matData.Length);

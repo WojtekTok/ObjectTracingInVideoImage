@@ -55,6 +55,11 @@
             pictureBoxVideo.Size = new Size(602, 406);
             pictureBoxVideo.TabIndex = 1;
             pictureBoxVideo.TabStop = false;
+            pictureBoxVideo.MouseDown += _rectangleSelector.OnMouseDown;
+            pictureBoxVideo.MouseMove += _rectangleSelector.OnMouseMove;
+            pictureBoxVideo.MouseUp += _rectangleSelector.OnMouseUp;
+            pictureBoxVideo.Paint += _rectangleSelector.OnPaint;
+
             // 
             // numericFpsOverride
             // 

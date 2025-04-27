@@ -1,5 +1,6 @@
-﻿using ObjectTracingInVideoImage.Core;
-using ObjectTracingVideoImage.App.Extensions;
+﻿using ObjectTracingInVideoImage.App.Controls;
+using ObjectTracingInVideoImage.App.Extensions;
+using ObjectTracingInVideoImage.Core;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -8,6 +9,7 @@ namespace ObjectTracingVideoImage.App
         private VideoManager _videoManager = new VideoManager();
         private int _frameCounter = 0;
         private DateTime _lastFpsCheck = DateTime.Now;
+        private RectangleSelector _rectangleSelector = new RectangleSelector();
 
 
         public MainForm()
@@ -50,7 +52,7 @@ namespace ObjectTracingVideoImage.App
                 {
                     if (IsHandleCreated)
                     {
-                        await InvokeAsync(() =>
+                        await this.InvokeAsync(() =>
                         {
                             pictureBoxVideo.Image?.Dispose();
                             pictureBoxVideo.Image = mat.ToBitmap();
@@ -64,6 +66,7 @@ namespace ObjectTracingVideoImage.App
                                 _frameCounter = 0;
                                 _lastFpsCheck = now;
                             }
+                            pictureBoxVideo.Invalidate();
                         });
                     }
                 });
@@ -81,17 +84,6 @@ namespace ObjectTracingVideoImage.App
                     _videoManager.Pause();
                     btnPlayVideo.Text = "▶️ Resume";
                 }
-            }
-        }
-
-        private Task InvokeAsync(Action action)
-        {
-            if (InvokeRequired)
-                return Task.Factory.StartNew(() => Invoke(action), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-            else
-            {
-                action();
-                return Task.CompletedTask;
             }
         }
     }
