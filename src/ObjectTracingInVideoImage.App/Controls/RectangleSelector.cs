@@ -45,7 +45,7 @@
 
         public void OnPaint(object sender, PaintEventArgs e)
         {
-            if (SelectionRectangle.Width > 0 && SelectionRectangle.Height > 0)
+            if (_isSelecting && SelectionRectangle.Width > 0 && SelectionRectangle.Height > 0)
             {
                 using (var pen = new Pen(Color.Red, 2))
                 {

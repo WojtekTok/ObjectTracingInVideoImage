@@ -59,13 +59,7 @@ namespace ObjectTracingVideoImage.App
                             mat.Dispose();
                             _frameCounter++;
 
-                            var now = DateTime.Now;
-                            if ((now - _lastFpsCheck).TotalSeconds >= 1)
-                            {
-                                labelFps.Text = $"FPS: {_frameCounter}";
-                                _frameCounter = 0;
-                                _lastFpsCheck = now;
-                            }
+                            DisplayCurrentFps();
                             pictureBoxVideo.Invalidate();
                         });
                     }
@@ -84,6 +78,17 @@ namespace ObjectTracingVideoImage.App
                     _videoManager.Pause();
                     btnPlayVideo.Text = "▶️ Resume";
                 }
+            }
+        }
+
+        private void DisplayCurrentFps()
+        {
+            var now = DateTime.Now;
+            if ((now - _lastFpsCheck).TotalSeconds >= 1)
+            {
+                labelFps.Text = $"FPS: {_frameCounter}";
+                _frameCounter = 0;
+                _lastFpsCheck = now;
             }
         }
     }
