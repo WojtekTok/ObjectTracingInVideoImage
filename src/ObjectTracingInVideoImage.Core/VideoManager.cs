@@ -1,6 +1,7 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace ObjectTracingInVideoImage.Core
 {
@@ -78,6 +79,16 @@ namespace ObjectTracingInVideoImage.Core
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay);
             }
+        }
+
+        public Mat? GetFirstFrame()
+        {
+            if (_videoCapture != null)
+            {
+                _videoCapture.Set(CapProp.PosFrames, 0);
+                return _videoCapture.QueryFrame();
+            }
+            return null;
         }
 
     }

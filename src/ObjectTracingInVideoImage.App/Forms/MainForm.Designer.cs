@@ -57,7 +57,7 @@
             pictureBoxVideo.TabStop = false;
             pictureBoxVideo.MouseDown += _rectangleSelector.OnMouseDown;
             pictureBoxVideo.MouseMove += _rectangleSelector.OnMouseMove;
-            pictureBoxVideo.MouseUp += _rectangleSelector.OnMouseUp;
+            pictureBoxVideo.MouseUp += pictureBoxVideo_MouseUp;
             pictureBoxVideo.Paint += _rectangleSelector.OnPaint;
 
             // 
