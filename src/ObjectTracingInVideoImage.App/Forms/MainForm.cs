@@ -98,6 +98,10 @@ namespace ObjectTracingVideoImage.App
                         using var pen = new Pen(Color.Red, 2);
                         g.DrawRectangle(pen, rect.Value);
                     }
+                    if (!_rectangleSelector.IsSelecting)
+                    {
+                        _rectangleSelector.Clear();
+                    }
                 }
 
                 pictureBoxVideo.Image = bitmap;

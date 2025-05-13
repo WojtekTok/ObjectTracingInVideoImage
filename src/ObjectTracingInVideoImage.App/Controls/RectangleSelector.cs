@@ -4,6 +4,7 @@
     {
         private bool _isSelecting = false;
         private Point _selectionStart;
+        private bool _isActiveSelection = false;
         public Rectangle SelectionRectangle { get; private set; }
 
         public bool IsSelecting => _isSelecting;
@@ -39,13 +40,14 @@
             if (_isSelecting && e.Button == MouseButtons.Left)
             {
                 _isSelecting = false;
+                _isActiveSelection = true;
                 (sender as Control)?.Invalidate();
             }
         }
 
         public void OnPaint(object sender, PaintEventArgs e)
         {
-            if (_isSelecting && SelectionRectangle.Width > 0 && SelectionRectangle.Height > 0)
+            if ((_isSelecting || _isActiveSelection) && SelectionRectangle.Width > 0 && SelectionRectangle.Height > 0)
             {
                 using (var pen = new Pen(Color.Red, 2))
                 {
@@ -53,5 +55,12 @@
                 }
             }
         }
+
+        public void Clear()
+        {
+            SelectionRectangle = Rectangle.Empty;
+            _isActiveSelection = false;
+        }
+
     }
 }

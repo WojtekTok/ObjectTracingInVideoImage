@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectTracingInVideoImage", "ObjectTracingInVideoImage\ObjectTracingInVideoImage.csproj", "{EC7670D1-B7DD-4AE8-9D22-FE004A8160E1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectTracingInVideoImage.App", "ObjectTracingInVideoImage.App\ObjectTracingInVideoImage.App.csproj", "{0E060624-41D0-45F3-8D95-B405C70080E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectTracingInVideoImage.Core", "ObjectTracingInVideoImage.Core\ObjectTracingInVideoImage.Core.csproj", "{62CF12E6-AB56-471F-BAFE-F637B49A1978}"
@@ -15,10 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EC7670D1-B7DD-4AE8-9D22-FE004A8160E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EC7670D1-B7DD-4AE8-9D22-FE004A8160E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EC7670D1-B7DD-4AE8-9D22-FE004A8160E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EC7670D1-B7DD-4AE8-9D22-FE004A8160E1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0E060624-41D0-45F3-8D95-B405C70080E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0E060624-41D0-45F3-8D95-B405C70080E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E060624-41D0-45F3-8D95-B405C70080E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
