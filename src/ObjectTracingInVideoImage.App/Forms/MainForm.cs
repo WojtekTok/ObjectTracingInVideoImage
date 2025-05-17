@@ -3,6 +3,8 @@ using ObjectTracingInVideoImage.App.Extensions;
 using ObjectTracingInVideoImage.Core;
 using ObjectTracingInVideoImage.Core.Trackers;
 using Emgu.CV;
+using ObjectTracingInVideoImage.Core.Enums;
+using ObjectTracingInVideoImage.Core.Factories;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -48,7 +50,7 @@ namespace ObjectTracingVideoImage.App
             }
         }
 
-        private void numericFpsOverride_ValueChanged(object sender, EventArgs e)
+        private void NumericFpsOverride_ValueChanged(object sender, EventArgs e)
         {
             _videoManager.Fps = (double)numericFpsOverride.Value;
         }
@@ -127,33 +129,20 @@ namespace ObjectTracingVideoImage.App
             }
         }
 
-        private void pictureBoxVideo_MouseUp(object sender, MouseEventArgs e)
+        private void PictureBoxVideo_MouseUp(object sender, MouseEventArgs e)
         {
             _rectangleSelector.OnMouseUp(sender, e);
 
             if (!_rectangleSelector.SelectionRectangle.IsEmpty && _lastFrame != null)
             {
                 var roiControl = _rectangleSelector.SelectionRectangle;
-                var roi = ScaleRectangleToImage(roiControl, pictureBoxVideo, _lastFrame.Size);
+                var roi = roiControl.ScaleRectangleToImage(pictureBoxVideo, _lastFrame.Size);
 
-                _tracker = new KcfObjectTracker();
+                _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType) ? 
+                    TrackerFactory.Create(trackerType) : 
+                    throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
                 _tracker.Initialize(_lastFrame, roi);
             }
         }
-
-        private Rectangle ScaleRectangleToImage(Rectangle controlRect, PictureBox pb, Size imageSize)
-        {
-            float ratioX = (float)imageSize.Width / pb.ClientSize.Width;
-            float ratioY = (float)imageSize.Height / pb.ClientSize.Height;
-
-            return new Rectangle(
-                (int)(controlRect.X * ratioX),
-                (int)(controlRect.Y * ratioY),
-                (int)(controlRect.Width * ratioX),
-                (int)(controlRect.Height * ratioY)
-            );
-        }
-
-
     }
 }

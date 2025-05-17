@@ -1,4 +1,6 @@
-﻿namespace ObjectTracingVideoImage.App
+﻿using ObjectTracingInVideoImage.Core.Enums;
+
+namespace ObjectTracingVideoImage.App
 {
     partial class MainForm
     {
@@ -33,6 +35,7 @@
             numericFpsOverride = new NumericUpDown();
             btnPlayVideo = new Button();
             labelFps = new Label();
+            comboBoxTracker = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericFpsOverride).BeginInit();
             SuspendLayout();
@@ -57,9 +60,8 @@
             pictureBoxVideo.TabStop = false;
             pictureBoxVideo.MouseDown += _rectangleSelector.OnMouseDown;
             pictureBoxVideo.MouseMove += _rectangleSelector.OnMouseMove;
-            pictureBoxVideo.MouseUp += pictureBoxVideo_MouseUp;
             pictureBoxVideo.Paint += _rectangleSelector.OnPaint;
-
+            pictureBoxVideo.MouseUp += PictureBoxVideo_MouseUp;
             // 
             // numericFpsOverride
             // 
@@ -70,7 +72,7 @@
             numericFpsOverride.Size = new Size(120, 23);
             numericFpsOverride.TabIndex = 2;
             numericFpsOverride.Value = new decimal(new int[] { 30, 0, 0, 0 });
-            numericFpsOverride.ValueChanged += numericFpsOverride_ValueChanged;
+            numericFpsOverride.ValueChanged += NumericFpsOverride_ValueChanged;
             // 
             // btnPlayVideo
             // 
@@ -87,15 +89,27 @@
             labelFps.AutoSize = true;
             labelFps.Location = new Point(16, 146);
             labelFps.Name = "labelFps";
-            labelFps.Size = new Size(38, 15);
+            labelFps.Size = new Size(29, 15);
             labelFps.TabIndex = 4;
             labelFps.Text = "FPS:";
+            // 
+            // comboBoxTracker
+            // 
+            comboBoxTracker.FormattingEnabled = true;
+            comboBoxTracker.Location = new Point(11, 181);
+            comboBoxTracker.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxTracker.DataSource = Enum.GetValues(typeof(TrackerType));
+            comboBoxTracker.SelectedItem = "KCF";
+            comboBoxTracker.Name = "comboBoxTracker";
+            comboBoxTracker.Size = new Size(121, 23);
+            comboBoxTracker.TabIndex = 5;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(comboBoxTracker);
             Controls.Add(labelFps);
             Controls.Add(btnPlayVideo);
             Controls.Add(numericFpsOverride);
@@ -116,5 +130,6 @@
         private NumericUpDown numericFpsOverride;
         private Button btnPlayVideo;
         private Label labelFps;
+        private ComboBox comboBoxTracker;
     }
 }
