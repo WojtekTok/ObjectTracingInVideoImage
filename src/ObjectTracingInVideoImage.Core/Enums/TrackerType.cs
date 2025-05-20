@@ -3,6 +3,7 @@
     public enum TrackerType
     {
         KCF,
+        CSRT,
         Test
     }
 }

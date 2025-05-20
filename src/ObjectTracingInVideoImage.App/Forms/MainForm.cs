@@ -116,8 +116,6 @@ namespace ObjectTracingVideoImage.App
             });
         }
 
-
-
         private void DisplayCurrentFps()
         {
             var now = DateTime.Now;

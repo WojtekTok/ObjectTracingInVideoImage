@@ -1,7 +1,6 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace ObjectTracingInVideoImage.Core
 {
