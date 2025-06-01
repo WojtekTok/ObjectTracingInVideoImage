@@ -1,12 +1,7 @@
-﻿using Emgu.CV;
-using Emgu.CV.CvEnum;
-using System;
+﻿using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Text.Json;
-using System.Diagnostics;
+using Emgu.CV;
 
 namespace ObjectTracingInVideoImage.Core.Trackers
 {
@@ -16,7 +11,7 @@ namespace ObjectTracingInVideoImage.Core.Trackers
         private readonly HttpClient _httpClient;
         private bool _initialized = false;
 
-        public SiammaskObjectTracker(string serverUrl = "http://localhost:5000")
+        public SiammaskObjectTracker(string serverUrl = "http://127.0.0.1:5000")
         {
             _serverUrl = serverUrl.TrimEnd('/');
             _httpClient = new HttpClient();
@@ -24,7 +19,6 @@ namespace ObjectTracingInVideoImage.Core.Trackers
 
         public void Initialize(Mat initialFrame, Rectangle selection)
         {
-            // Zamiana Mat -> JPEG bytes
             var sw = Stopwatch.StartNew();
             byte[] imageBytes = MatToJpegBytes(initialFrame);
             sw.Stop();
@@ -59,14 +53,13 @@ namespace ObjectTracingInVideoImage.Core.Trackers
             var content = response.Content.ReadAsStringAsync().Result;
 
             float[] arr = JsonSerializer.Deserialize<float[]>(content);
-            // arr = [x, y, w, h]
             Rectangle bbox = Rectangle.Round(new RectangleF(arr[0], arr[1], arr[2], arr[3]));
             return bbox;
         }
 
         private byte[] MatToJpegBytes(Mat frame)
         {
-            var arr = Emgu.CV.CvInvoke.Imencode(".jpg", frame);
+            var arr = CvInvoke.Imencode(".jpg", frame);
             return (byte[])arr;
         }
 

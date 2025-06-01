@@ -1,5 +1,0 @@
-set PYTHONPATH=%CD%;%PYTHONPATH%
-venv38\Scripts\activate
-cd C:\Wszystko\Kody\Nowyfolder\SiamMask
-cd tools
-python app.py
