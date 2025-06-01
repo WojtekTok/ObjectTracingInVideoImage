@@ -72,7 +72,7 @@ namespace ObjectTracingInVideoImage.Core
 
                 await onFrame(frame.Clone());
 
-                var frameInterval = TimeSpan.FromMilliseconds(1000.0 / Fps);
+                var frameInterval = TimeSpan.FromMilliseconds(1000.0 / 0.3);
                 nextFrameTime += frameInterval;
                 var delay = nextFrameTime - stopwatch.Elapsed;
                 if (delay > TimeSpan.Zero)
