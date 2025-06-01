@@ -405,3 +405,5 @@ FodyWeavers.xsd
 /TSP/Testing/Program.cs
 /TSP/Testing/Testing.csproj
 /TSP/.vs/TSP/v17/.suo
+src/ObjectTracingInVideoImage.Core/Models
+siam-server/commands.txt

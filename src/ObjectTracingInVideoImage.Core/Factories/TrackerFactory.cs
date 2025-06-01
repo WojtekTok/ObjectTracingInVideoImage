@@ -12,6 +12,7 @@ namespace ObjectTracingInVideoImage.Core.Factories
                 TrackerType.KCF => new KcfObjectTracker(),
                 TrackerType.Test => new Test(),
                 TrackerType.CSRT => new CsrtObjectTracker(),
+                TrackerType.Siammask => new SiammaskObjectTracker(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }

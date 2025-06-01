@@ -89,11 +89,13 @@ namespace ObjectTracingVideoImage.App
                 pictureBoxVideo.Image?.Dispose();
                 _lastFrame = mat.Clone();
 
+                // Zawsze twórz kopię do trackera i do wyświetlania!
+                using var trackerInput = mat.Clone();
                 Bitmap bitmap = mat.ToBitmap();
 
                 if (_tracker != null)
                 {
-                    var rect = _tracker.Track(mat);
+                    var rect = _tracker.Track(trackerInput); // używaj klona
                     if (rect.HasValue)
                     {
                         using var g = Graphics.FromImage(bitmap);
@@ -115,6 +117,7 @@ namespace ObjectTracingVideoImage.App
                 mat.Dispose();
             });
         }
+
 
         private void DisplayCurrentFps()
         {
