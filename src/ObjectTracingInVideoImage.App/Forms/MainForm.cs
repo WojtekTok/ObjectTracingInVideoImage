@@ -84,28 +84,28 @@ namespace ObjectTracingVideoImage.App
         {
             if (!IsHandleCreated) return;
 
+            Rectangle? rect = null;
+            if (_tracker != null)
+            {
+                rect = await Task.Run(() => _tracker.Track(mat));
+            }
+
             await this.InvokeAsync(() =>
             {
                 pictureBoxVideo.Image?.Dispose();
                 _lastFrame = mat.Clone();
 
-                // Zawsze twórz kopię do trackera i do wyświetlania!
-                using var trackerInput = mat.Clone();
                 Bitmap bitmap = mat.ToBitmap();
 
-                if (_tracker != null)
+                if (rect.HasValue)
                 {
-                    var rect = _tracker.Track(trackerInput); // używaj klona
-                    if (rect.HasValue)
-                    {
-                        using var g = Graphics.FromImage(bitmap);
-                        using var pen = new Pen(Color.Red, 2);
-                        g.DrawRectangle(pen, rect.Value);
-                    }
-                    if (!_rectangleSelector.IsSelecting)
-                    {
-                        _rectangleSelector.Clear();
-                    }
+                    using var g = Graphics.FromImage(bitmap);
+                    using var pen = new Pen(Color.Red, 2);
+                    g.DrawRectangle(pen, rect.Value);
+                }
+                if (!_rectangleSelector.IsSelecting)
+                {
+                    _rectangleSelector.Clear();
                 }
 
                 pictureBoxVideo.Image = bitmap;
