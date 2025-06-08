@@ -83,6 +83,7 @@ namespace ObjectTracingVideoImage.App
             btnPlayVideo.Text = "▶️ Start";
             btnPlayVideo.UseVisualStyleBackColor = true;
             btnPlayVideo.Click += BtnPlayVideo_Click;
+            btnPlayVideo.Enabled = false;
             // 
             // labelFps
             // 

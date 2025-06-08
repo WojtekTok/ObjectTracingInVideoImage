@@ -2,9 +2,9 @@
 using Emgu.CV.CvEnum;
 using System.Diagnostics;
 
-namespace ObjectTracingInVideoImage.Core
+namespace ObjectTracingInVideoImage.Core.PlayerManager
 {
-    public class VideoManager
+    public class VideoManager : IPlayerManager
     {
         private VideoCapture? _videoCapture;
         private CancellationTokenSource? _cancellationTokenSource;

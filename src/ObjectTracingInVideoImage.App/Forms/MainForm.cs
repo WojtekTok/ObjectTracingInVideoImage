@@ -1,16 +1,16 @@
 ﻿using ObjectTracingInVideoImage.App.Controls;
 using ObjectTracingInVideoImage.App.Extensions;
-using ObjectTracingInVideoImage.Core;
 using ObjectTracingInVideoImage.Core.Trackers;
 using Emgu.CV;
 using ObjectTracingInVideoImage.Core.Enums;
 using ObjectTracingInVideoImage.Core.Factories;
+using ObjectTracingInVideoImage.Core.PlayerManager;
 
 namespace ObjectTracingVideoImage.App
 {
     public partial class MainForm : Form
     {
-        private readonly VideoManager _videoManager = new();
+        private IPlayerManager _playerManager;
         private int _frameCounter = 0;
         private DateTime _lastFpsCheck = DateTime.Now;
         private readonly RectangleSelector _rectangleSelector = new();
@@ -27,19 +27,40 @@ namespace ObjectTracingVideoImage.App
         {
             using OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Pliki wideo|*.mp4;*.avi; *.webm", // This string works for Polish Windows system
+                Filter = "Pliki wideo|*.mp4;*.avi;*.webm;*.jpg", // This string works for Polish Windows system
                 Title = "Choose video file"
             };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                string filePath = openFileDialog.FileName;
-                if (_videoManager.LoadVideo(filePath))
+                var filePath = openFileDialog.FileName;
+                var extension = Path.GetExtension(filePath).ToLower();
+                if (_playerManager != null)
                 {
-                    numericFpsOverride.Value = (decimal)_videoManager.Fps;
+                    _playerManager.Stop();
+                    pictureBoxVideo.Image?.Dispose();
+                    pictureBoxVideo.Image = null;
                     btnPlayVideo.Text = "▶️ Start";
+                }
+                if (extension == ".jpg")
+                {
+                    _playerManager = new ImageSequenceManager();
+                }
+                else if (extension == ".mp4" || extension == ".avi" || extension == ".webm")
+                {
+                    _playerManager = new VideoManager();
+                }
+                else
+                {
+                    MessageBox.Show("Unsupported file format. Please select a valid video file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (_playerManager.LoadVideo(filePath))
+                {
+                    numericFpsOverride.Value = (decimal)_playerManager.Fps;
+                    btnPlayVideo.Enabled = true;
                     _tracker?.Dispose();
-                    var firstFrame = _videoManager.GetFirstFrame();
+                    var firstFrame = _playerManager.GetFirstFrame();
                     if (firstFrame != null)
                     {
                         _lastFrame = firstFrame.Clone();
@@ -52,29 +73,29 @@ namespace ObjectTracingVideoImage.App
 
         private void NumericFpsOverride_ValueChanged(object sender, EventArgs e)
         {
-            _videoManager.Fps = (double)numericFpsOverride.Value;
+            _playerManager.Fps = (double)numericFpsOverride.Value;
         }
 
         private async void BtnPlayVideo_Click(object sender, EventArgs e)
         {
-            if (!_videoManager.IsPlaying)
+            if (!_playerManager.IsPlaying)
             {
                 btnPlayVideo.Text = "⏸️ Pause";
 
-                await _videoManager.StartVideoAsync(ProcessFrameAsync);
+                await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 _tracker?.Dispose();
 
             }
             else
             {
-                if (_videoManager.IsPaused)
+                if (_playerManager.IsPaused)
                 {
-                    _videoManager.Resume();
+                    _playerManager.Resume();
                     btnPlayVideo.Text = "⏸️ Pause";
                 }
                 else
                 {
-                    _videoManager.Pause();
+                    _playerManager.Pause();
                     btnPlayVideo.Text = "▶️ Resume";
                 }
             }
