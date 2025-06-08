@@ -5,6 +5,7 @@ using Emgu.CV;
 using ObjectTracingInVideoImage.Core.Enums;
 using ObjectTracingInVideoImage.Core.Factories;
 using ObjectTracingInVideoImage.Core.PlayerManager;
+using ObjectTracingInVideoImage.Core.Testing;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -16,6 +17,12 @@ namespace ObjectTracingVideoImage.App
         private readonly RectangleSelector _rectangleSelector = new();
         private IObjectTracker _tracker;
         private Mat _lastFrame;
+        private string _imageDirectory;
+
+        private GroundTruthData _groundTruthData;
+        private TrackingEvaluator _evaluator;
+        private bool _isTestMode = false;
+        private int _testFrameCounter = 0;
 
         public MainForm()
         {
@@ -67,6 +74,13 @@ namespace ObjectTracingVideoImage.App
                         pictureBoxVideo.Image?.Dispose();
                         pictureBoxVideo.Image = _lastFrame.ToBitmap();
                     }
+                    _imageDirectory = Path.GetDirectoryName(Path.GetDirectoryName(filePath)) ?? string.Empty;
+                    if (_isTestMode)
+                    {
+                        SetGroundTruthData();
+                        InitTrackerFromGroundTruth();
+                    }
+                    _testFrameCounter = 0;
                 }
             }
         }
@@ -111,12 +125,32 @@ namespace ObjectTracingVideoImage.App
                 rect = await Task.Run(() => _tracker.Track(mat));
             }
 
+            Rectangle? groundTruthRect = null;
+            bool skipMetrics = false;
+
+            if (_isTestMode && _groundTruthData != null)
+            {
+                groundTruthRect = _groundTruthData.GetBox(_testFrameCounter);
+                skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
+                if (!skipMetrics && rect.HasValue && groundTruthRect.HasValue)
+                {
+                    _evaluator.EvaluateFrame(_testFrameCounter, rect.Value);
+                }
+            }
+
             await this.InvokeAsync(() =>
             {
                 pictureBoxVideo.Image?.Dispose();
                 _lastFrame = mat.Clone();
 
                 Bitmap bitmap = mat.ToBitmap();
+
+                if (groundTruthRect.HasValue)
+                {
+                    using var g = Graphics.FromImage(bitmap);
+                    using var pen = new Pen(Color.LimeGreen, 2);
+                    g.DrawRectangle(pen, groundTruthRect.Value);
+                }
 
                 if (rect.HasValue)
                 {
@@ -131,8 +165,13 @@ namespace ObjectTracingVideoImage.App
 
                 pictureBoxVideo.Image = bitmap;
                 _frameCounter++;
+                _testFrameCounter++;
 
                 DisplayCurrentFps();
+                if (_isTestMode && _evaluator != null)
+                {
+                    labelIoU.Text = $"Średni IoU: {_evaluator.MeanIoU:F3}, Klatek: {_evaluator.TestedFrames}";
+                } // Refactor this method as it is too long and has too many responsibilities
                 pictureBoxVideo.Invalidate();
 
                 mat.Dispose();
@@ -160,11 +199,66 @@ namespace ObjectTracingVideoImage.App
                 var roiControl = _rectangleSelector.SelectionRectangle;
                 var roi = roiControl.ScaleRectangleToImage(pictureBoxVideo, _lastFrame.Size);
 
-                _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType) ? 
-                    TrackerFactory.Create(trackerType) : 
-                    throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
-                _tracker.Initialize(_lastFrame, roi);
+                GetTrackerAndInitialize(roi);
             }
+        }
+
+        private void CheckBoxTestMode_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxTestMode.Checked)
+            {
+                SetGroundTruthData();
+            }
+            else
+            {
+                _isTestMode = false;
+            }
+        }
+
+        private void SetGroundTruthData()
+        {
+            try
+            {
+                var baseDir = _imageDirectory;
+                var gtPath = Path.Combine(baseDir, "groundtruth.txt");
+                var occPath = Path.Combine(baseDir, "full_occlusion.txt");
+                var oovPath = Path.Combine(baseDir, "out_of_view.txt");
+
+                if (!File.Exists(gtPath) || !File.Exists(occPath) || !File.Exists(oovPath))
+                    throw new FileNotFoundException("Culd not find necessary ground truth files in:\n" + baseDir);
+
+                _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
+                _evaluator = new TrackingEvaluator(_groundTruthData);
+
+                _isTestMode = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not run test mode:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                checkBoxTestMode.Checked = false;
+                _isTestMode = false;
+            }
+        }
+
+        private void InitTrackerFromGroundTruth()
+        {
+            if (_lastFrame == null || _groundTruthData == null) return;
+
+            var gtRect = _groundTruthData.GetBox(0);
+            if (gtRect.HasValue)
+            {
+                GetTrackerAndInitialize(gtRect.Value);
+            }
+        }
+
+        private void GetTrackerAndInitialize(Rectangle roi)
+        {
+            _tracker?.Dispose();
+            _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
+                ? TrackerFactory.Create(trackerType)
+                : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
+
+            _tracker.Initialize(_lastFrame, roi);
         }
     }
 }

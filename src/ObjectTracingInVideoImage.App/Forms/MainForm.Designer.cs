@@ -36,6 +36,8 @@ namespace ObjectTracingVideoImage.App
             btnPlayVideo = new Button();
             labelFps = new Label();
             comboBoxTracker = new ComboBox();
+            checkBoxTestMode = new CheckBox();
+            labelIoU = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericFpsOverride).BeginInit();
             SuspendLayout();
@@ -76,6 +78,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnPlayVideo
             // 
+            btnPlayVideo.Enabled = false;
             btnPlayVideo.Location = new Point(12, 88);
             btnPlayVideo.Name = "btnPlayVideo";
             btnPlayVideo.Size = new Size(120, 40);
@@ -83,7 +86,6 @@ namespace ObjectTracingVideoImage.App
             btnPlayVideo.Text = "▶️ Start";
             btnPlayVideo.UseVisualStyleBackColor = true;
             btnPlayVideo.Click += BtnPlayVideo_Click;
-            btnPlayVideo.Enabled = false;
             // 
             // labelFps
             // 
@@ -105,11 +107,34 @@ namespace ObjectTracingVideoImage.App
             comboBoxTracker.Size = new Size(121, 23);
             comboBoxTracker.TabIndex = 5;
             // 
+            // checkBoxTestMode
+            // 
+            checkBoxTestMode.Appearance = Appearance.Button;
+            checkBoxTestMode.AutoSize = true;
+            checkBoxTestMode.Location = new Point(17, 218);
+            checkBoxTestMode.Name = "checkBoxTestMode";
+            checkBoxTestMode.Size = new Size(89, 25);
+            checkBoxTestMode.TabIndex = 6;
+            checkBoxTestMode.Text = "Testing mode";
+            checkBoxTestMode.UseVisualStyleBackColor = true;
+            checkBoxTestMode.CheckedChanged += CheckBoxTestMode_CheckedChanged;
+            // 
+            // labelIoU
+            // 
+            labelIoU.AutoSize = true;
+            labelIoU.Location = new Point(17, 265);
+            labelIoU.Name = "labelIoU";
+            labelIoU.Size = new Size(38, 15);
+            labelIoU.TabIndex = 7;
+            labelIoU.Text = "label1";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(labelIoU);
+            Controls.Add(checkBoxTestMode);
             Controls.Add(comboBoxTracker);
             Controls.Add(labelFps);
             Controls.Add(btnPlayVideo);
@@ -132,5 +157,7 @@ namespace ObjectTracingVideoImage.App
         private Button btnPlayVideo;
         private Label labelFps;
         private ComboBox comboBoxTracker;
+        private CheckBox checkBoxTestMode;
+        private Label labelIoU;
     }
 }

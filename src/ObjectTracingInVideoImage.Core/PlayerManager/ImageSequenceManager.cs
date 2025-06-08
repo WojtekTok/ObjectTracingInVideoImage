@@ -61,10 +61,12 @@ namespace ObjectTracingInVideoImage.Core.PlayerManager
             {
                 if (IsPaused)
                 {
+                    stopwatch.Stop();
                     await Task.Delay(50);
                     continue;
                 }
 
+                stopwatch.Start();
                 string filePath = Path.Combine(_directoryPath!, $"{_currentFrameIndex:D8}.jpg");
                 _currentFrameIndex++;
                 if (!File.Exists(filePath)) continue;
