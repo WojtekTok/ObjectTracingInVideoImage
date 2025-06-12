@@ -4,6 +4,7 @@
     {
         KCF,
         CSRT,
+        MIL,
         Siammask,
         Test
     }
