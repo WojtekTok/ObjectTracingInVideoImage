@@ -168,7 +168,7 @@ namespace ObjectTracingVideoImage.App
                 {
                     labelIoU.Text = $"Mean IoU: {_evaluator.MeanIoU:F3}";
                     labelFramesNumber.Text = $"Frames: {_evaluator.TestedFrames}";
-                } // Refactor this method as it is too long and has too many responsibilities
+                }
                 pictureBoxVideo.Invalidate();
 
                 mat.Dispose();
@@ -196,7 +196,12 @@ namespace ObjectTracingVideoImage.App
                 var roiControl = _rectangleSelector.SelectionRectangle;
                 var roi = roiControl.ScaleRectangleToImage(pictureBoxVideo, _lastFrame.Size);
 
-                GetTrackerAndInitialize(roi);
+                _tracker?.Dispose();
+                _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
+                    ? TrackerFactory.Create(trackerType)
+                    : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
+
+                _tracker.Initialize(_lastFrame, roi);
             }
         }
 
@@ -204,7 +209,27 @@ namespace ObjectTracingVideoImage.App
         {
             if (checkBoxTestMode.Checked)
             {
-                SetGroundTruthData();
+                try
+                {
+                    var baseDir = _imageDirectory;
+                    var gtPath = Path.Combine(baseDir, "groundtruth.txt");
+                    var occPath = Path.Combine(baseDir, "full_occlusion.txt");
+                    var oovPath = Path.Combine(baseDir, "out_of_view.txt");
+
+                    if (!File.Exists(gtPath) || !File.Exists(occPath) || !File.Exists(oovPath))
+                        throw new FileNotFoundException("Culd not find necessary ground truth files in:\n" + baseDir);
+
+                    _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
+                    _evaluator = new TrackingEvaluator(_groundTruthData);
+
+                    _showingCorrectBox = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Cannot display test bounding box:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    checkBoxTestMode.Checked = false;
+                    _showingCorrectBox = false;
+                }
             }
             else
             {
@@ -233,41 +258,6 @@ namespace ObjectTracingVideoImage.App
 
             pictureBoxVideo.Image?.Dispose();
             pictureBoxVideo.Image = bitmap;
-        }
-
-        private void SetGroundTruthData()
-        {
-            try
-            {
-                var baseDir = _imageDirectory;
-                var gtPath = Path.Combine(baseDir, "groundtruth.txt");
-                var occPath = Path.Combine(baseDir, "full_occlusion.txt");
-                var oovPath = Path.Combine(baseDir, "out_of_view.txt");
-
-                if (!File.Exists(gtPath) || !File.Exists(occPath) || !File.Exists(oovPath))
-                    throw new FileNotFoundException("Culd not find necessary ground truth files in:\n" + baseDir);
-
-                _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
-                _evaluator = new TrackingEvaluator(_groundTruthData);
-
-                _showingCorrectBox = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Cannot display test bounding box:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                checkBoxTestMode.Checked = false;
-                _showingCorrectBox = false;
-            }
-        }
-
-        private void GetTrackerAndInitialize(Rectangle roi)
-        {
-            _tracker?.Dispose();
-            _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
-                ? TrackerFactory.Create(trackerType)
-                : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
-
-            _tracker.Initialize(_lastFrame, roi);
         }
     }
 }
