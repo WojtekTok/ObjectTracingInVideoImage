@@ -196,7 +196,6 @@ namespace ObjectTracingVideoImage.App
                 var roiControl = _rectangleSelector.SelectionRectangle;
                 var roi = roiControl.ScaleRectangleToImage(pictureBoxVideo, _lastFrame.Size);
 
-                _tracker?.Dispose();
                 _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
                     ? TrackerFactory.Create(trackerType)
                     : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
