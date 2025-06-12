@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace ObjectTracingInVideoImage.Core.Testing
 {
@@ -32,9 +27,9 @@ namespace ObjectTracingInVideoImage.Core.Testing
             _testedFrames++;
         }
 
-        public double MeanIoU => _ious.Count > 0 ? _ious.Average() : 0;
-        public double MinIoU => _ious.Count > 0 ? _ious.Min() : 0;
-        public double MaxIoU => _ious.Count > 0 ? _ious.Max() : 0;
+        public double MeanIoU => _testedFrames > 0 ? _ious.Sum()/_testedFrames : 0;
+        public double MinIoU => _testedFrames > 0 ? _ious.Min() : 0;
+        public double MaxIoU => _testedFrames > 0 ? _ious.Max() : 0;
         public int TestedFrames => _testedFrames;
         public int TotalFrames => _groundTruth.Count;
 

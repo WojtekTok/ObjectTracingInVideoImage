@@ -21,7 +21,7 @@ namespace ObjectTracingVideoImage.App
 
         private GroundTruthData _groundTruthData;
         private TrackingEvaluator _evaluator;
-        private bool _isTestMode = false;
+        private bool _showingCorrectBox = false;
         private int _testFrameCounter = 0;
 
         public MainForm()
@@ -75,11 +75,7 @@ namespace ObjectTracingVideoImage.App
                         pictureBoxVideo.Image = _lastFrame.ToBitmap();
                     }
                     _imageDirectory = Path.GetDirectoryName(Path.GetDirectoryName(filePath)) ?? string.Empty;
-                    if (_isTestMode)
-                    {
-                        SetGroundTruthData();
-                        InitTrackerFromGroundTruth();
-                    }
+                    _evaluator = new TrackingEvaluator(_groundTruthData);
                     _testFrameCounter = 0;
                 }
             }
@@ -128,13 +124,13 @@ namespace ObjectTracingVideoImage.App
             Rectangle? groundTruthRect = null;
             bool skipMetrics = false;
 
-            if (_isTestMode && _groundTruthData != null)
+            if (_showingCorrectBox && _groundTruthData != null)
             {
                 groundTruthRect = _groundTruthData.GetBox(_testFrameCounter);
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
-                if (!skipMetrics && rect.HasValue && groundTruthRect.HasValue)
+                if (!skipMetrics && groundTruthRect.HasValue)
                 {
-                    _evaluator.EvaluateFrame(_testFrameCounter, rect.Value);
+                    _evaluator.EvaluateFrame(_testFrameCounter, rect);
                 }
             }
 
@@ -168,9 +164,10 @@ namespace ObjectTracingVideoImage.App
                 _testFrameCounter++;
 
                 DisplayCurrentFps();
-                if (_isTestMode && _evaluator != null)
+                if (_showingCorrectBox && _evaluator != null)
                 {
-                    labelIoU.Text = $"Średni IoU: {_evaluator.MeanIoU:F3}, Klatek: {_evaluator.TestedFrames}";
+                    labelIoU.Text = $"Mean IoU: {_evaluator.MeanIoU:F3}";
+                    labelFramesNumber.Text = $"Frames: {_evaluator.TestedFrames}";
                 } // Refactor this method as it is too long and has too many responsibilities
                 pictureBoxVideo.Invalidate();
 
@@ -211,8 +208,31 @@ namespace ObjectTracingVideoImage.App
             }
             else
             {
-                _isTestMode = false;
+                _showingCorrectBox = false;
             }
+        }
+
+        private void BtnInitTrackerWithGroundTruth_Click(object sender, EventArgs e)
+        {
+            if (_lastFrame == null || _groundTruthData == null) return;
+            int currentFrameIdx = _testFrameCounter;
+            var gtRect = _groundTruthData.GetBox(currentFrameIdx);
+            if (!gtRect.HasValue) return;
+
+            _tracker?.Dispose();
+            _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
+                ? TrackerFactory.Create(trackerType)
+                : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
+
+            _tracker.Initialize(_lastFrame, gtRect.Value);
+
+            Bitmap bitmap = _lastFrame.ToBitmap();
+            using (var g = Graphics.FromImage(bitmap))
+            using (var pen = new Pen(Color.Red, 2))
+                g.DrawRectangle(pen, gtRect.Value);
+
+            pictureBoxVideo.Image?.Dispose();
+            pictureBoxVideo.Image = bitmap;
         }
 
         private void SetGroundTruthData()
@@ -230,24 +250,13 @@ namespace ObjectTracingVideoImage.App
                 _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
                 _evaluator = new TrackingEvaluator(_groundTruthData);
 
-                _isTestMode = true;
+                _showingCorrectBox = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Could not run test mode:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Cannot display test bounding box:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 checkBoxTestMode.Checked = false;
-                _isTestMode = false;
-            }
-        }
-
-        private void InitTrackerFromGroundTruth()
-        {
-            if (_lastFrame == null || _groundTruthData == null) return;
-
-            var gtRect = _groundTruthData.GetBox(0);
-            if (gtRect.HasValue)
-            {
-                GetTrackerAndInitialize(gtRect.Value);
+                _showingCorrectBox = false;
             }
         }
 

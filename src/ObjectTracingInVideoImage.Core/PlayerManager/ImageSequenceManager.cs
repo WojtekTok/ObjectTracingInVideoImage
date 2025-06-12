@@ -11,7 +11,7 @@ namespace ObjectTracingInVideoImage.Core.PlayerManager
         private CancellationTokenSource? _cancellationTokenSource;
         private int _currentFrameIndex;
         private int _frameCount;
-        public double Fps { get; set; } = 60;
+        public double Fps { get; set; } = 30;
         public bool IsPlaying { get; set; }
         public bool IsPaused { get; set; }
 

@@ -38,6 +38,8 @@ namespace ObjectTracingVideoImage.App
             comboBoxTracker = new ComboBox();
             checkBoxTestMode = new CheckBox();
             labelIoU = new Label();
+            btnInitTrackerWithGroundTruth = new Button();
+            labelFramesNumber = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericFpsOverride).BeginInit();
             SuspendLayout();
@@ -68,7 +70,7 @@ namespace ObjectTracingVideoImage.App
             // numericFpsOverride
             // 
             numericFpsOverride.Location = new Point(12, 59);
-            numericFpsOverride.Maximum = new decimal(new int[] { 240, 0, 0, 0 });
+            numericFpsOverride.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             numericFpsOverride.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericFpsOverride.Name = "numericFpsOverride";
             numericFpsOverride.Size = new Size(120, 23);
@@ -122,17 +124,38 @@ namespace ObjectTracingVideoImage.App
             // labelIoU
             // 
             labelIoU.AutoSize = true;
-            labelIoU.Location = new Point(17, 265);
+            labelIoU.Location = new Point(21, 316);
             labelIoU.Name = "labelIoU";
             labelIoU.Size = new Size(38, 15);
             labelIoU.TabIndex = 7;
-            labelIoU.Text = "label1";
+            labelIoU.Text = "Mean IoU:";
+            // 
+            // btnInitTrackerWithGroundTruth
+            // 
+            btnInitTrackerWithGroundTruth.Location = new Point(21, 256);
+            btnInitTrackerWithGroundTruth.Name = "btnInitTrackerWithGroundTruth";
+            btnInitTrackerWithGroundTruth.Size = new Size(75, 23);
+            btnInitTrackerWithGroundTruth.TabIndex = 8;
+            btnInitTrackerWithGroundTruth.Text = "Initialize tracking";
+            btnInitTrackerWithGroundTruth.UseVisualStyleBackColor = true;
+            btnInitTrackerWithGroundTruth.Click += BtnInitTrackerWithGroundTruth_Click;
+            // 
+            // labelFramesNumber
+            // 
+            labelFramesNumber.AutoSize = true;
+            labelFramesNumber.Location = new Point(21, 341);
+            labelFramesNumber.Name = "labelFramesNumber";
+            labelFramesNumber.Size = new Size(38, 15);
+            labelFramesNumber.TabIndex = 9;
+            labelFramesNumber.Text = "Frames:";
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(labelFramesNumber);
+            Controls.Add(btnInitTrackerWithGroundTruth);
             Controls.Add(labelIoU);
             Controls.Add(checkBoxTestMode);
             Controls.Add(comboBoxTracker);
@@ -159,5 +182,7 @@ namespace ObjectTracingVideoImage.App
         private ComboBox comboBoxTracker;
         private CheckBox checkBoxTestMode;
         private Label labelIoU;
+        private Button btnInitTrackerWithGroundTruth;
+        private Label labelFramesNumber;
     }
 }
