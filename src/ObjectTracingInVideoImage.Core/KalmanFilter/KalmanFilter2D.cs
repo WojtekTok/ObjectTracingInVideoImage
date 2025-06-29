@@ -8,6 +8,7 @@ namespace ObjectTracingInVideoImage.Core.KalmanFilter
         private readonly Emgu.CV.KalmanFilter _kalman;
         private readonly Matrix<float> _state;
         private readonly Matrix<float> _measurement;
+        public KalmanData _kalmanData = new();
 
         public KalmanFilter2D()
         {

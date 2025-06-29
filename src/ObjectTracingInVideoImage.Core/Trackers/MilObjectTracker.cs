@@ -10,7 +10,7 @@ namespace ObjectTracingInVideoImage.Core.Trackers
         public void Initialize(Mat initialFrame, Rectangle selection)
         {
             _tracker?.Dispose();
-            _tracker ??= new();
+            _tracker = new();
             _tracker.Init(initialFrame, selection);
         }
 

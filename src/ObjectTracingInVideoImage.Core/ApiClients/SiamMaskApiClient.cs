@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Globalization;
 using System.Text.Json;
 
 namespace ObjectTracingInVideoImage.Core.ApiClients
@@ -43,6 +44,28 @@ namespace ObjectTracingInVideoImage.Core.ApiClients
                 return null;
 
             return Rectangle.Round(new RectangleF(arr[0], arr[1], arr[2], arr[3]));
+        }
+
+        public async Task UpdateRoiAsync(PointF targetPos)
+        {
+            var form = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("roi", $"{targetPos.X.ToString(CultureInfo.InvariantCulture)},{targetPos.Y.ToString(CultureInfo.InvariantCulture)}")
+            });
+
+            var response = await _httpClient.PostAsync($"{_serverUrl}/update-roi", form);
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task UpdateThresholdAsync(float pscoreThreshold)
+        {
+            var form = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("pscore_threshold", pscoreThreshold.ToString(CultureInfo.InvariantCulture))
+            });
+
+            var response = await _httpClient.PostAsync($"{_serverUrl}/update-threshold", form);
+            response.EnsureSuccessStatusCode();
         }
     }
 }

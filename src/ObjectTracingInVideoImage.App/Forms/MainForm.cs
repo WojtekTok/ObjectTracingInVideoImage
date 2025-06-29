@@ -272,7 +272,13 @@ namespace ObjectTracingVideoImage.App
         {
             if (comboBoxTracker.SelectedItem is TrackerType selectedType)
             {
-                var kalmanTrackers = new List<TrackerType> { TrackerType.Test };
+                var kalmanTrackers = new List<TrackerType> 
+                { 
+                    TrackerType.Test,
+                    TrackerType.Hybrid_KCF,
+                    TrackerType.Hybrid_CSRT,
+                    TrackerType.Hybrid_MIL,
+                };
 
                 checkBoxVisualizeKalman.Enabled = kalmanTrackers.Contains(selectedType);
             }
