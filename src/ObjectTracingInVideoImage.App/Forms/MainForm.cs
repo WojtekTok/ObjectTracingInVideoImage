@@ -6,6 +6,8 @@ using ObjectTracingInVideoImage.Core.Enums;
 using ObjectTracingInVideoImage.Core.Factories;
 using ObjectTracingInVideoImage.Core.PlayerManager;
 using ObjectTracingInVideoImage.Core.Testing;
+using ObjectTracingInVideoImage.App.Visuralizers;
+using ObjectTracingInVideoImage.Core.KalmanFilter;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -52,10 +54,12 @@ namespace ObjectTracingVideoImage.App
                 if (extension == ".jpg")
                 {
                     _playerManager = new ImageSequenceManager();
+                    checkBoxTestMode.Enabled = true;
                 }
                 else if (extension == ".mp4" || extension == ".avi" || extension == ".webm")
                 {
                     _playerManager = new VideoManager();
+                    checkBoxTestMode.Enabled = false;
                 }
                 else
                 {
@@ -90,7 +94,7 @@ namespace ObjectTracingVideoImage.App
         {
             if (!_playerManager.IsPlaying)
             {
-                btnPlayVideo.Text = "⏸️ Pause";
+                btnPlayVideo.Text = "⏸️";
 
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 _tracker?.Dispose();
@@ -101,12 +105,12 @@ namespace ObjectTracingVideoImage.App
                 if (_playerManager.IsPaused)
                 {
                     _playerManager.Resume();
-                    btnPlayVideo.Text = "⏸️ Pause";
+                    btnPlayVideo.Text = "⏸️";
                 }
                 else
                 {
                     _playerManager.Pause();
-                    btnPlayVideo.Text = "▶️ Resume";
+                    btnPlayVideo.Text = "▶️";
                 }
             }
         }
@@ -138,6 +142,12 @@ namespace ObjectTracingVideoImage.App
             {
                 pictureBoxVideo.Image?.Dispose();
                 _lastFrame = mat.Clone();
+
+                if (_tracker is IKalmanTracker kalmanTracker && checkBoxVisualizeKalman.Checked)
+                {
+                    KalmanVisualizer.DrawPaths(mat, kalmanTracker.GetKalmanData());
+                }
+
 
                 Bitmap bitmap = mat.ToBitmap();
 
@@ -196,9 +206,7 @@ namespace ObjectTracingVideoImage.App
                 var roiControl = _rectangleSelector.SelectionRectangle;
                 var roi = roiControl.ScaleRectangleToImage(pictureBoxVideo, _lastFrame.Size);
 
-                _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
-                    ? TrackerFactory.Create(trackerType)
-                    : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
+                CreateTracker();
 
                 _tracker.Initialize(_lastFrame, roi);
             }
@@ -206,7 +214,7 @@ namespace ObjectTracingVideoImage.App
 
         private void CheckBoxTestMode_CheckedChanged(object sender, EventArgs e)
         {
-            if (checkBoxTestMode.Checked)
+            if (checkBoxTestMode.Checked && _imageDirectory != null)
             {
                 try
                 {
@@ -220,6 +228,7 @@ namespace ObjectTracingVideoImage.App
 
                     _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
                     _evaluator = new TrackingEvaluator(_groundTruthData);
+                    btnInitTrackerWithGroundTruth.Enabled = true;
 
                     _showingCorrectBox = true;
                 }
@@ -233,6 +242,8 @@ namespace ObjectTracingVideoImage.App
             else
             {
                 _showingCorrectBox = false;
+                checkBoxTestMode.Checked = false;
+                btnInitTrackerWithGroundTruth.Enabled = false;
             }
         }
 
@@ -244,11 +255,9 @@ namespace ObjectTracingVideoImage.App
             if (!gtRect.HasValue) return;
 
             _tracker?.Dispose();
-            _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
-                ? TrackerFactory.Create(trackerType)
-                : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
+            CreateTracker();
 
-            _tracker.Initialize(_lastFrame, gtRect.Value);
+            _tracker!.Initialize(_lastFrame, gtRect.Value);
 
             Bitmap bitmap = _lastFrame.ToBitmap();
             using (var g = Graphics.FromImage(bitmap))
@@ -257,6 +266,27 @@ namespace ObjectTracingVideoImage.App
 
             pictureBoxVideo.Image?.Dispose();
             pictureBoxVideo.Image = bitmap;
+        }
+
+        private void ComboBoxTracker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxTracker.SelectedItem is TrackerType selectedType)
+            {
+                var kalmanTrackers = new List<TrackerType> { TrackerType.Test };
+
+                checkBoxVisualizeKalman.Enabled = kalmanTrackers.Contains(selectedType);
+            }
+            else
+            {
+                checkBoxVisualizeKalman.Enabled = false;
+            }
+        }
+
+        private void CreateTracker()
+        {
+            _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
+                ? TrackerFactory.Create(trackerType)
+                : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
         }
     }
 }
