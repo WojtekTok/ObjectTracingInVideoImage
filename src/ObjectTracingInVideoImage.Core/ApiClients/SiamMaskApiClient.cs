@@ -32,8 +32,16 @@ namespace ObjectTracingInVideoImage.Core.ApiClients
             {
                 { new ByteArrayContent(imageBytes), "image", "frame.jpg" }
             };
+            HttpResponseMessage? response;
+            try
+            {
+                response = await _httpClient.PostAsync($"{_serverUrl}/track", form);
 
-            var response = await _httpClient.PostAsync($"{_serverUrl}/track", form);
+            }
+            catch (HttpRequestException ex)
+            {
+                return null;
+            }
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -53,7 +61,7 @@ namespace ObjectTracingInVideoImage.Core.ApiClients
                 new KeyValuePair<string, string>("roi", $"{targetPos.X.ToString(CultureInfo.InvariantCulture)},{targetPos.Y.ToString(CultureInfo.InvariantCulture)}")
             });
 
-            var response = await _httpClient.PostAsync($"{_serverUrl}/update-roi", form);
+            var response = await _httpClient.PutAsync($"{_serverUrl}/update-roi", form);
             response.EnsureSuccessStatusCode();
         }
 
@@ -64,7 +72,7 @@ namespace ObjectTracingInVideoImage.Core.ApiClients
                 new KeyValuePair<string, string>("pscore_threshold", pscoreThreshold.ToString(CultureInfo.InvariantCulture))
             });
 
-            var response = await _httpClient.PostAsync($"{_serverUrl}/update-threshold", form);
+            var response = await _httpClient.PutAsync($"{_serverUrl}/update-threshold", form);
             response.EnsureSuccessStatusCode();
         }
     }

@@ -81,14 +81,14 @@ def api_track():
 
     return response
 
-@app.route('/update-roi', methods=['POST'])
+@app.route('/update-roi', methods=['PUT'])
 def api_update_roi():
     roi_str = request.form['roi']
     x, y = map(float, roi_str.split(','))
     tracker_state["target_pos"] = np.array([x, y], dtype=np.float32)
     return jsonify({'result': 'ok'})
 
-@app.route('/update-threshold', methods=['POST'])
+@app.route('/update-threshold', methods=['PUT'])
 def api_update_threshold():
     global pscore_threshold
     threshold = float(request.form['pscore_threshold']) 

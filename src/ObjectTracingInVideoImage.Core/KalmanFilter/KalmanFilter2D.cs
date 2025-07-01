@@ -34,10 +34,10 @@ namespace ObjectTracingInVideoImage.Core.KalmanFilter
 
             var processNoise = new Matrix<float>(new float[,]
             {
-                {1e-2f, 0, 0, 0},
-                {0, 1e-2f, 0, 0},
-                {0, 0, 1e-2f, 0},
-                {0, 0, 0, 1e-2f}
+                {1e-4f, 0, 0, 0},
+                {0, 1e-4f, 0, 0},
+                {0, 0, 1e-4f, 0},
+                {0, 0, 0, 1e-4f}
             });
             processNoise.Mat.CopyTo(_kalman.ProcessNoiseCov);
 

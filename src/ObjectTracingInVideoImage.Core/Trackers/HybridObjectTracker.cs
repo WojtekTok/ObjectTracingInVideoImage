@@ -12,8 +12,9 @@ namespace ObjectTracingInVideoImage.Core.Trackers
         private readonly IKalmanFilter2D _kalman;
         private readonly KalmanData _kalmanData;
         private int _frameCountSinceSiam = 0;
-        private bool _forceSiamNext = false;
-
+        private int _consecutiveSiamFailures = 0;
+        private PointF? _lastValidDetection = null;
+        private Rectangle? _initialSelection = null;
 
         public HybridObjectTracker(IObjectTracker classicTracker)
         {
@@ -25,16 +26,20 @@ namespace ObjectTracingInVideoImage.Core.Trackers
 
         public void Initialize(Mat initialFrame, Rectangle selection)
         {
+            _initialSelection = selection;
             _classicTracker.Initialize(initialFrame, selection);
             byte[] imageBytes = CvInvoke.Imencode(".jpg", initialFrame).ToArray();
-            var initResponse = _siamApiClient.InitializeAsync(imageBytes, selection); // This has to be awaited somewhere probably
-            var thresholdResponse = _siamApiClient.UpdateThresholdAsync(0.85f);
+            _siamApiClient.InitializeAsync(imageBytes, selection);
+            _siamApiClient.UpdateThresholdAsync(0.88f);
+
             PointF center = new PointF(selection.X + selection.Width / 2f, selection.Y + selection.Height / 2f);
             _kalman.Init(center);
             _kalmanData.Clear();
             _kalmanData.AddPredictedPoint(center);
             _kalmanData.AddObservedPoint(center);
             _frameCountSinceSiam = 0;
+            _consecutiveSiamFailures = 0;
+            _lastValidDetection = center;
         }
 
         public Rectangle? Track(Mat frame)
@@ -42,28 +47,43 @@ namespace ObjectTracingInVideoImage.Core.Trackers
             _frameCountSinceSiam++;
             byte[] imageBytes = CvInvoke.Imencode(".jpg", frame).ToArray();
 
-            if (_frameCountSinceSiam >= 10 || _forceSiamNext)
+            PointF predictedCenter = _kalman.Predict();
+            predictedCenter = ClampToFrame(predictedCenter, frame);
+            _kalmanData.AddPredictedPoint(predictedCenter);
+
+            if (_frameCountSinceSiam >= 10)
             {
-                PointF predictedCenter = _kalman.Predict();
-                _kalmanData.AddPredictedPoint(predictedCenter);
+                PointF roi = predictedCenter;
 
-                _siamApiClient.UpdateRoiAsync(predictedCenter).Wait();
+                if (_consecutiveSiamFailures >= 15 && _consecutiveSiamFailures % 2 == 0 && _lastValidDetection.HasValue)
+                {
+                    roi = _lastValidDetection.Value;
+                }
 
+                _siamApiClient.UpdateRoiAsync(roi).Wait();
                 var siamResult = _siamApiClient.TrackAsync(imageBytes).Result;
+
                 if (siamResult.HasValue)
                 {
                     PointF observed = new PointF(
                         siamResult.Value.X + siamResult.Value.Width / 2f,
                         siamResult.Value.Y + siamResult.Value.Height / 2f);
 
-                    _kalman.Correct(observed);
+                    observed = ClampToFrame(observed, frame);
+                    _kalmanData.AddPredictedPoint(observed);
                     _kalmanData.AddObservedPoint(observed);
 
                     _classicTracker.Initialize(frame, siamResult.Value);
                     _frameCountSinceSiam = 0;
+                    _consecutiveSiamFailures = 0;
+                    _lastValidDetection = observed;
                     return siamResult;
                 }
-                _forceSiamNext = true;
+                else
+                {
+                    _consecutiveSiamFailures++;
+                    return null;
+                }
             }
 
             Rectangle? trackedRect = _classicTracker.Track(frame);
@@ -72,37 +92,24 @@ namespace ObjectTracingInVideoImage.Core.Trackers
                 PointF observed = new PointF(
                     trackedRect.Value.X + trackedRect.Value.Width / 2f,
                     trackedRect.Value.Y + trackedRect.Value.Height / 2f);
-                PointF predicted = _kalman.Predict();
 
-                _kalmanData.AddPredictedPoint(predicted);
+                observed = ClampToFrame(observed, frame);
                 _kalman.Correct(observed);
                 _kalmanData.AddObservedPoint(observed);
+                _lastValidDetection = observed;
 
+                _consecutiveSiamFailures = 0;
                 return trackedRect;
-            }
-            else
-            {
-                PointF predictedCenter = _kalman.Predict();
-                _kalmanData.AddPredictedPoint(predictedCenter);
-
-                _siamApiClient.UpdateRoiAsync(predictedCenter).Wait();
-                var siamResult = _siamApiClient.TrackAsync(imageBytes).Result;
-                if (siamResult.HasValue)
-                {
-                    PointF observed = new PointF(
-                        siamResult.Value.X + siamResult.Value.Width / 2f,
-                        siamResult.Value.Y + siamResult.Value.Height / 2f);
-
-                    _kalman.Correct(observed);
-                    _kalmanData.AddObservedPoint(observed);
-
-                    _classicTracker.Initialize(frame, siamResult.Value);
-                    _frameCountSinceSiam = 0;
-                    return siamResult;
-                }
             }
 
             return null;
+        }
+
+        private PointF ClampToFrame(PointF point, Mat frame)
+        {
+            float clampedX = Math.Max(0, Math.Min(frame.Width - 1, point.X));
+            float clampedY = Math.Max(0, Math.Min(frame.Height - 1, point.Y));
+            return new PointF(clampedX, clampedY);
         }
 
         public KalmanData GetKalmanData()
