@@ -14,7 +14,6 @@ namespace ObjectTracingInVideoImage.Core.Trackers
         private int _frameCountSinceSiam = 0;
         private int _consecutiveSiamFailures = 0;
         private PointF? _lastValidDetection = null;
-        private Rectangle? _initialSelection = null;
 
         public HybridObjectTracker(IObjectTracker classicTracker)
         {
@@ -26,7 +25,6 @@ namespace ObjectTracingInVideoImage.Core.Trackers
 
         public void Initialize(Mat initialFrame, Rectangle selection)
         {
-            _initialSelection = selection;
             _classicTracker.Initialize(initialFrame, selection);
             byte[] imageBytes = CvInvoke.Imencode(".jpg", initialFrame).ToArray();
             _siamApiClient.InitializeAsync(imageBytes, selection);

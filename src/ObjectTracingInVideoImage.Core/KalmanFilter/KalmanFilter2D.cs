@@ -43,8 +43,8 @@ namespace ObjectTracingInVideoImage.Core.KalmanFilter
 
             var measurementNoise = new Matrix<float>(new float[,] 
             { 
-                { 1e-1f, 0 }, 
-                { 0, 1e-1f } 
+                { 1e-3f, 0 }, 
+                { 0, 1e-3f } 
             });
             measurementNoise.Mat.CopyTo(_kalman.MeasurementNoiseCov);
 

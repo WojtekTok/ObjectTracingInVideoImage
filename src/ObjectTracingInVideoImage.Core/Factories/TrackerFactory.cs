@@ -17,6 +17,7 @@ namespace ObjectTracingInVideoImage.Core.Factories
                 TrackerType.Hybrid_KCF => new HybridObjectTracker(Create(TrackerType.KCF)),
                 TrackerType.Hybrid_CSRT => new HybridObjectTracker(Create(TrackerType.CSRT)),
                 TrackerType.Hybrid_MIL => new HybridObjectTracker(Create(TrackerType.MIL)),
+                TrackerType.Hybrid => new HybridObjectTrackerv2(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }

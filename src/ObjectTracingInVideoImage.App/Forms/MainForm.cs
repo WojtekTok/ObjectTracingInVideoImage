@@ -278,6 +278,7 @@ namespace ObjectTracingVideoImage.App
                     TrackerType.Hybrid_KCF,
                     TrackerType.Hybrid_CSRT,
                     TrackerType.Hybrid_MIL,
+                    TrackerType.Hybrid
                 };
 
                 checkBoxVisualizeKalman.Enabled = kalmanTrackers.Contains(selectedType);
