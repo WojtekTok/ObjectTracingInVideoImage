@@ -8,6 +8,7 @@ using ObjectTracingInVideoImage.Core.PlayerManager;
 using ObjectTracingInVideoImage.Core.Testing;
 using ObjectTracingInVideoImage.App.Visuralizers;
 using ObjectTracingInVideoImage.Core.KalmanFilter;
+using System.IO;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -20,6 +21,7 @@ namespace ObjectTracingVideoImage.App
         private IObjectTracker _tracker;
         private Mat _lastFrame;
         private string _imageDirectory;
+        private string _filePath;
 
         private GroundTruthData _groundTruthData;
         private TrackingEvaluator _evaluator;
@@ -42,14 +44,14 @@ namespace ObjectTracingVideoImage.App
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                var filePath = openFileDialog.FileName;
-                var extension = Path.GetExtension(filePath).ToLower();
+                _filePath = openFileDialog.FileName;
+                var extension = Path.GetExtension(_filePath).ToLower();
                 if (_playerManager != null)
                 {
                     _playerManager.Stop();
                     pictureBoxVideo.Image?.Dispose();
                     pictureBoxVideo.Image = null;
-                    btnPlayVideo.Text = "▶️ Start";
+                    btnPlayVideo.Text = "▶️";
                 }
                 if (extension == ".jpg")
                 {
@@ -66,22 +68,7 @@ namespace ObjectTracingVideoImage.App
                     MessageBox.Show("Unsupported file format. Please select a valid video file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-                if (_playerManager.LoadVideo(filePath))
-                {
-                    numericFpsOverride.Value = (decimal)_playerManager.Fps;
-                    btnPlayVideo.Enabled = true;
-                    _tracker?.Dispose();
-                    var firstFrame = _playerManager.GetFirstFrame();
-                    if (firstFrame != null)
-                    {
-                        _lastFrame = firstFrame.Clone();
-                        pictureBoxVideo.Image?.Dispose();
-                        pictureBoxVideo.Image = _lastFrame.ToBitmap();
-                    }
-                    _imageDirectory = Path.GetDirectoryName(Path.GetDirectoryName(filePath)) ?? string.Empty;
-                    _evaluator = new TrackingEvaluator(_groundTruthData);
-                    _testFrameCounter = 0;
-                }
+                LoadCurrentFile();
             }
         }
 
@@ -218,19 +205,8 @@ namespace ObjectTracingVideoImage.App
             {
                 try
                 {
-                    var baseDir = _imageDirectory;
-                    var gtPath = Path.Combine(baseDir, "groundtruth.txt");
-                    var occPath = Path.Combine(baseDir, "full_occlusion.txt");
-                    var oovPath = Path.Combine(baseDir, "out_of_view.txt");
-
-                    if (!File.Exists(gtPath) || !File.Exists(occPath) || !File.Exists(oovPath))
-                        throw new FileNotFoundException("Culd not find necessary ground truth files in:\n" + baseDir);
-
-                    _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
-                    _evaluator = new TrackingEvaluator(_groundTruthData);
+                    SetGroundTruthData();
                     btnInitTrackerWithGroundTruth.Enabled = true;
-
-                    _showingCorrectBox = true;
                 }
                 catch (Exception ex)
                 {
@@ -272,8 +248,8 @@ namespace ObjectTracingVideoImage.App
         {
             if (comboBoxTracker.SelectedItem is TrackerType selectedType)
             {
-                var kalmanTrackers = new List<TrackerType> 
-                { 
+                var kalmanTrackers = new List<TrackerType>
+                {
                     TrackerType.Test,
                     TrackerType.Hybrid_KCF,
                     TrackerType.Hybrid_CSRT,
@@ -289,11 +265,54 @@ namespace ObjectTracingVideoImage.App
             }
         }
 
+        private void BtnReloadFile_Click(object sender, EventArgs e)
+        {
+            LoadCurrentFile();
+        }
+
         private void CreateTracker()
         {
             _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
                 ? TrackerFactory.Create(trackerType)
                 : throw new ArgumentOutOfRangeException(nameof(trackerType), trackerType, null);
+        }
+
+        private void LoadCurrentFile()
+        {
+            if (_playerManager.LoadVideo(_filePath))
+            {
+                numericFpsOverride.Value = (decimal)_playerManager.Fps;
+                btnPlayVideo.Enabled = true;
+                _tracker?.Dispose();
+                var firstFrame = _playerManager.GetFirstFrame();
+                if (firstFrame != null)
+                {
+                    _lastFrame = firstFrame.Clone();
+                    pictureBoxVideo.Image?.Dispose();
+                    pictureBoxVideo.Image = _lastFrame.ToBitmap();
+                }
+                _imageDirectory = Path.GetDirectoryName(Path.GetDirectoryName(_filePath)) ?? string.Empty;
+                if(checkBoxTestMode.Checked)
+                    SetGroundTruthData();
+                _testFrameCounter = 0;
+                btnReloadFile.Enabled = true;
+            }
+        }
+
+        private void SetGroundTruthData()
+        {
+            var baseDir = _imageDirectory;
+            var gtPath = Path.Combine(baseDir, "groundtruth.txt");
+            var occPath = Path.Combine(baseDir, "full_occlusion.txt");
+            var oovPath = Path.Combine(baseDir, "out_of_view.txt");
+
+            if (!File.Exists(gtPath) || !File.Exists(occPath) || !File.Exists(oovPath))
+                throw new FileNotFoundException("Culd not find necessary ground truth files in:\n" + baseDir);
+
+            _groundTruthData = new GroundTruthData(gtPath, occPath, oovPath);
+            _evaluator = new TrackingEvaluator(_groundTruthData);
+
+            _showingCorrectBox = true;
         }
     }
 }

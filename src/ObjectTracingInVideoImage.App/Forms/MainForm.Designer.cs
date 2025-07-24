@@ -41,6 +41,7 @@ namespace ObjectTracingVideoImage.App
             btnInitTrackerWithGroundTruth = new Button();
             labelFramesNumber = new Label();
             checkBoxVisualizeKalman = new CheckBox();
+            btnReloadFile = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericFpsOverride).BeginInit();
             SuspendLayout();
@@ -84,7 +85,7 @@ namespace ObjectTracingVideoImage.App
             btnPlayVideo.Enabled = false;
             btnPlayVideo.Location = new Point(12, 88);
             btnPlayVideo.Name = "btnPlayVideo";
-            btnPlayVideo.Size = new Size(120, 40);
+            btnPlayVideo.Size = new Size(75, 40);
             btnPlayVideo.TabIndex = 3;
             btnPlayVideo.Text = "▶️";
             btnPlayVideo.UseVisualStyleBackColor = true;
@@ -95,7 +96,7 @@ namespace ObjectTracingVideoImage.App
             labelFps.AutoSize = true;
             labelFps.Location = new Point(16, 146);
             labelFps.Name = "labelFps";
-            labelFps.Size = new Size(29, 15);
+            labelFps.Size = new Size(34, 15);
             labelFps.TabIndex = 4;
             labelFps.Text = "FPS:-";
             // 
@@ -115,13 +116,13 @@ namespace ObjectTracingVideoImage.App
             // 
             checkBoxTestMode.Appearance = Appearance.Button;
             checkBoxTestMode.AutoSize = true;
+            checkBoxTestMode.Enabled = false;
             checkBoxTestMode.Location = new Point(17, 218);
             checkBoxTestMode.Name = "checkBoxTestMode";
             checkBoxTestMode.Size = new Size(89, 25);
             checkBoxTestMode.TabIndex = 6;
             checkBoxTestMode.Text = "Testing mode";
             checkBoxTestMode.UseVisualStyleBackColor = true;
-            checkBoxTestMode.Enabled = false;
             checkBoxTestMode.CheckedChanged += CheckBoxTestMode_CheckedChanged;
             // 
             // labelIoU
@@ -129,19 +130,19 @@ namespace ObjectTracingVideoImage.App
             labelIoU.AutoSize = true;
             labelIoU.Location = new Point(21, 316);
             labelIoU.Name = "labelIoU";
-            labelIoU.Size = new Size(61, 15);
+            labelIoU.Size = new Size(66, 15);
             labelIoU.TabIndex = 7;
             labelIoU.Text = "Mean IoU:-";
             // 
             // btnInitTrackerWithGroundTruth
             // 
+            btnInitTrackerWithGroundTruth.Enabled = false;
             btnInitTrackerWithGroundTruth.Location = new Point(21, 256);
             btnInitTrackerWithGroundTruth.Name = "btnInitTrackerWithGroundTruth";
             btnInitTrackerWithGroundTruth.Size = new Size(75, 23);
             btnInitTrackerWithGroundTruth.TabIndex = 8;
             btnInitTrackerWithGroundTruth.Text = "Initialize tracking";
             btnInitTrackerWithGroundTruth.UseVisualStyleBackColor = true;
-            btnInitTrackerWithGroundTruth.Enabled = false;
             btnInitTrackerWithGroundTruth.Click += BtnInitTrackerWithGroundTruth_Click;
             // 
             // labelFramesNumber
@@ -149,26 +150,39 @@ namespace ObjectTracingVideoImage.App
             labelFramesNumber.AutoSize = true;
             labelFramesNumber.Location = new Point(21, 341);
             labelFramesNumber.Name = "labelFramesNumber";
-            labelFramesNumber.Size = new Size(48, 15);
+            labelFramesNumber.Size = new Size(53, 15);
             labelFramesNumber.TabIndex = 9;
             labelFramesNumber.Text = "Frames:-";
             // 
             // checkBoxVisualizeKalman
             // 
             checkBoxVisualizeKalman.AutoSize = true;
+            checkBoxVisualizeKalman.Enabled = false;
             checkBoxVisualizeKalman.Location = new Point(21, 377);
             checkBoxVisualizeKalman.Name = "checkBoxVisualizeKalman";
-            checkBoxVisualizeKalman.Size = new Size(82, 19);
+            checkBoxVisualizeKalman.Size = new Size(143, 19);
             checkBoxVisualizeKalman.TabIndex = 10;
             checkBoxVisualizeKalman.Text = "Visualize Kalman Filter";
             checkBoxVisualizeKalman.UseVisualStyleBackColor = true;
-            checkBoxVisualizeKalman.Enabled = false;
+            // 
+            // btnReloadFile
+            // 
+            btnReloadFile.Enabled = false;
+            btnReloadFile.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 238);
+            btnReloadFile.Location = new Point(93, 100);
+            btnReloadFile.Name = "btnReloadFile";
+            btnReloadFile.Size = new Size(31, 28);
+            btnReloadFile.TabIndex = 11;
+            btnReloadFile.Text = "⟲";
+            btnReloadFile.UseVisualStyleBackColor = true;
+            btnReloadFile.Click += BtnReloadFile_Click;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(btnReloadFile);
             Controls.Add(checkBoxVisualizeKalman);
             Controls.Add(labelFramesNumber);
             Controls.Add(btnInitTrackerWithGroundTruth);
@@ -201,5 +215,6 @@ namespace ObjectTracingVideoImage.App
         private Button btnInitTrackerWithGroundTruth;
         private Label labelFramesNumber;
         private CheckBox checkBoxVisualizeKalman;
+        private Button btnReloadFile;
     }
 }
