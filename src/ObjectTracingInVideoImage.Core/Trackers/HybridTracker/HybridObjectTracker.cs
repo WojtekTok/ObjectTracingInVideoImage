@@ -3,7 +3,7 @@ using ObjectTracingInVideoImage.Core.ApiClients;
 using System.Drawing;
 using Emgu.CV;
 
-namespace ObjectTracingInVideoImage.Core.Trackers
+namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
 {
     public class HybridObjectTracker : IObjectTracker, IKalmanTracker
     {

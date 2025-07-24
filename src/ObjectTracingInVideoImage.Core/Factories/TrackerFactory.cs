@@ -1,5 +1,7 @@
 ﻿using ObjectTracingInVideoImage.Core.Enums;
 using ObjectTracingInVideoImage.Core.Trackers;
+using ObjectTracingInVideoImage.Core.Trackers.ClassicTrackers;
+using ObjectTracingInVideoImage.Core.Trackers.HybridTracker;
 
 namespace ObjectTracingInVideoImage.Core.Factories
 {

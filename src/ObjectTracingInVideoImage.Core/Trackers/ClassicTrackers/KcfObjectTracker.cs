@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using Emgu.CV;
 
-namespace ObjectTracingInVideoImage.Core.Trackers
+namespace ObjectTracingInVideoImage.Core.Trackers.ClassicTrackers
 {
     public class KcfObjectTracker : IObjectTracker
     {

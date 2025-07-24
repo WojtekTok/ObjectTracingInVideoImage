@@ -4,11 +4,19 @@ using System.Drawing;
 using Emgu.CV;
 using ObjectTracingInVideoImage.Core.Enums;
 using ObjectTracingInVideoImage.Core.Testing;
+using ObjectTracingInVideoImage.Core.Trackers.ClassicTrackers;
 
-namespace ObjectTracingInVideoImage.Core.Trackers
+namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
 {
     public class HybridObjectTrackerv2 : IObjectTracker, IKalmanTracker
     {
+        private const int FramesEverySiamTrack = 7;
+        private const int MaxSiamFailures = 15;
+        private const float SiamThreshold = 0.88f;
+        private const float KcfVelocityThreshold = 1.5f;
+        private const int KcfSwitchFrames = 15;
+        private const float IoUThreshold = 0.75f;
+
         private readonly KcfObjectTracker _kcfTracker;
         private readonly CsrtObjectTracker _csrtTracker;
         private readonly MilObjectTracker _milTracker;
@@ -39,7 +47,7 @@ namespace ObjectTracingInVideoImage.Core.Trackers
 
             byte[] imageBytes = CvInvoke.Imencode(".jpg", initialFrame).ToArray();
             _siamApiClient.InitializeAsync(imageBytes, selection);
-            _siamApiClient.UpdateThresholdAsync(0.88f);
+            _siamApiClient.UpdateThresholdAsync(SiamThreshold);
 
             PointF center = new PointF(selection.X + selection.Width / 2f, selection.Y + selection.Height / 2f);
             _kalman.Init(center);
@@ -62,11 +70,11 @@ namespace ObjectTracingInVideoImage.Core.Trackers
             predictedCenter = ClampToFrame(predictedCenter, frame);
             _kalmanData.AddPredictedPoint(predictedCenter);
 
-            if (_frameCountSinceSiam >= 7 || !_wasLastTrackingSuccessful)
+            if (_frameCountSinceSiam >= FramesEverySiamTrack || !_wasLastTrackingSuccessful)
             {
                 PointF roi = predictedCenter;
 
-                if (_consecutiveSiamFailures >= 15 && _consecutiveSiamFailures % 2 == 0 && _lastValidDetection.HasValue)
+                if (_consecutiveSiamFailures >= MaxSiamFailures && _consecutiveSiamFailures % 2 == 0 && _lastValidDetection.HasValue)
                 {
                     roi = _lastValidDetection.Value;
                 }
@@ -90,7 +98,7 @@ namespace ObjectTracingInVideoImage.Core.Trackers
                     if (currentClassicResult.HasValue)
                     {
                         double iou = TrackingEvaluator.CalculateIoU(currentClassicResult.Value, siamResult.Value);
-                        if (iou < 0.75f)
+                        if (iou < IoUThreshold)
                         {
                             _currentTrackerType = _currentTrackerType == TrackerType.CSRT ? TrackerType.MIL : TrackerType.CSRT;
                             InitializeClassicTracker(frame, siamResult.Value);
@@ -195,9 +203,9 @@ namespace ObjectTracingInVideoImage.Core.Trackers
                 _currentTrackerType = TrackerType.CSRT;
                 return;
             }
-            var velocity = ComputeVelocity();
+            var velocity = VelocityEvaluator.ComputeVelocity(_kalmanData.ObservedPath);
 
-            if (velocity < 1.5f && _framesCountSinceKcf > 15)
+            if (velocity < KcfVelocityThreshold && _framesCountSinceKcf > KcfSwitchFrames)
             {
                 _currentTrackerType = TrackerType.KCF;
                 return;
@@ -206,32 +214,5 @@ namespace ObjectTracingInVideoImage.Core.Trackers
             if (_currentTrackerType == TrackerType.CSRT || _currentTrackerType == TrackerType.MIL)
                 return;
         }
-
-
-        private float? ComputeVelocity()
-        {
-            var points = _kalmanData.ObservedPath;
-            int count = points.Count;
-
-            if (count < 10)
-                return null;
-
-            int windowSize = Math.Min(10, count - 1);
-            float totalDistance = 0;
-
-            for (int i = count - windowSize; i < count - 1; i++)
-            {
-                Point p1 = points[i];
-                Point p2 = points[i + 1];
-
-                float dx = p2.X - p1.X;
-                float dy = p2.Y - p1.Y;
-                totalDistance += MathF.Sqrt(dx * dx + dy * dy);
-            }
-
-            return totalDistance / windowSize; // średnia prędkość w px/frame
-        }
-
-
     }
 }

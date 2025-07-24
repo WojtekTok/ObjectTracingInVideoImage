@@ -62,21 +62,30 @@ def api_track():
     npimg = np.frombuffer(file.read(), np.uint8)
     im = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-    old_tracker_state = siamese_track(tracker_state, im, mask_enable=False, refine_enable=True, device=device)
+    old_tracker_state = siamese_track(tracker_state, im, mask_enable=True, refine_enable=True, device=device)
     print(old_tracker_state["score"])
     if old_tracker_state["score"]<pscore_threshold:
         return Response(status=204)
     tracker_state = old_tracker_state
 
-    target_pos = tracker_state['target_pos']
-    target_sz = tracker_state['target_sz']
+    # target_pos = tracker_state['target_pos']
+    # target_sz = tracker_state['target_sz']
 
-    x = float(target_pos[0] - target_sz[0] / 2)
-    y = float(target_pos[1] - target_sz[1] / 2)
-    w = float(target_sz[0])
-    h = float(target_sz[1])
+    # # x = float(target_pos[0] - target_sz[0] / 2)
+    # # y = float(target_pos[1] - target_sz[1] / 2)
+    # # w = float(target_sz[0])
+    # # h = float(target_sz[1])
+    # rect_bbox = [x, y, w, h]
 
-    rect_bbox = [x, y, w, h]
+    polygon = tracker_state['ploygon'].flatten().tolist()
+    xs = polygon[::2]
+    ys = polygon[1::2]
+    min_x = min(xs)
+    min_y = min(ys)
+    max_x = max(xs)
+    max_y = max(ys)
+    rect_bbox = [float(min_x), float(min_y), float(max_x - min_x), float(max_y - min_y)]
+    
     response = Response(json.dumps(rect_bbox), mimetype="application/json")
 
     return response
