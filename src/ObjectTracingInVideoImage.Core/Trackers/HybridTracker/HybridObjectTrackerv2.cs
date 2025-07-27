@@ -30,6 +30,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
         private bool _wasLastTrackingSuccessful = false;
         private int _framesCountSinceKcf = 0;
 
+        public TrackerType LastUsedTracker { get; private set; }
+
         public HybridObjectTrackerv2()
         {
             _siamApiClient = new SiamMaskApiClient();

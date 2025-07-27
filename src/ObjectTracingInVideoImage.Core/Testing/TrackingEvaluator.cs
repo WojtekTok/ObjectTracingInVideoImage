@@ -13,18 +13,20 @@ namespace ObjectTracingInVideoImage.Core.Testing
             _groundTruth = groundTruth;
         }
 
-        public void EvaluateFrame(int frameIndex, Rectangle? trackedBox)
+        public double EvaluateFrame(int frameIndex, Rectangle? trackedBox)
         {
             var gt = _groundTruth.GetBox(frameIndex);
             if (gt == null || _groundTruth.IsOccluded(frameIndex) || _groundTruth.IsOutOfView(frameIndex))
-                return;
+                return 1;
 
+            _testedFrames++;
             if (trackedBox.HasValue)
             {
                 double iou = CalculateIoU(gt.Value, trackedBox.Value);
                 _ious.Add(iou);
+                return iou;
             }
-            _testedFrames++;
+            return 0;
         }
 
         public double MeanIoU => _testedFrames > 0 ? _ious.Sum()/_testedFrames : 0;

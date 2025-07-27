@@ -8,6 +8,8 @@ using ObjectTracingInVideoImage.Core.PlayerManager;
 using ObjectTracingInVideoImage.Core.Testing;
 using ObjectTracingInVideoImage.App.Visuralizers;
 using ObjectTracingInVideoImage.Core.KalmanFilter;
+using ObjectTracingInVideoImage.Core.Testing.Logging;
+using ObjectTracingInVideoImage.Core.Trackers.HybridTracker;
 using System.IO;
 
 namespace ObjectTracingVideoImage.App
@@ -22,7 +24,7 @@ namespace ObjectTracingVideoImage.App
         private Mat _lastFrame;
         private string _imageDirectory;
         private string _filePath;
-
+        private TrackingLogger _trackingLogger;
         private GroundTruthData _groundTruthData;
         private TrackingEvaluator _evaluator;
         private bool _showingCorrectBox = false;
@@ -84,6 +86,10 @@ namespace ObjectTracingVideoImage.App
                 btnPlayVideo.Text = "⏸️";
 
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
+                if (_trackingLogger != null && _imageDirectory != null)
+                {
+                    _trackingLogger.SaveToCsv(_imageDirectory);
+                }
                 _tracker?.Dispose();
 
             }
@@ -117,11 +123,23 @@ namespace ObjectTracingVideoImage.App
 
             if (_showingCorrectBox && _groundTruthData != null)
             {
+                double? iou = null;
                 groundTruthRect = _groundTruthData.GetBox(_testFrameCounter);
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
                 if (!skipMetrics && groundTruthRect.HasValue)
                 {
-                    _evaluator.EvaluateFrame(_testFrameCounter, rect);
+                    iou = _evaluator.EvaluateFrame(_testFrameCounter, rect);
+                }
+
+                if(groundTruthRect.HasValue && !groundTruthRect.Value.IsEmpty)
+                {
+                    var wasDetected = rect.HasValue && !rect.Value.IsEmpty;
+                    TrackerType? usedTracker = null;
+                    if (_tracker is HybridObjectTrackerv2 tracker)
+                    {
+                        usedTracker = tracker.LastUsedTracker;
+                    }
+                    _trackingLogger?.Log(_frameCounter, wasDetected, iou, usedTracker);
                 }
             }
 
@@ -178,7 +196,7 @@ namespace ObjectTracingVideoImage.App
             var now = DateTime.Now;
             if ((now - _lastFpsCheck).TotalSeconds >= 1)
             {
-                labelFps.Text = $"FPS: {_frameCounter}";
+                labelFps.Text = $"Actual FPS: {_frameCounter}";
                 _frameCounter = 0;
                 _lastFpsCheck = now;
             }
@@ -270,6 +288,18 @@ namespace ObjectTracingVideoImage.App
             LoadCurrentFile();
         }
 
+        private void BtnBenchmark_Click(object sender, EventArgs e)
+        {
+            if (_playerManager is ImageSequenceManager imageManager)
+            {
+                _trackingLogger = new TrackingLogger();
+            }
+            else
+            {
+                MessageBox.Show("Benchmarking is only available for image sequences.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
         private void CreateTracker()
         {
             _tracker = Enum.TryParse<TrackerType>(comboBoxTracker.SelectedItem?.ToString(), out var trackerType)
@@ -313,6 +343,7 @@ namespace ObjectTracingVideoImage.App
             _evaluator = new TrackingEvaluator(_groundTruthData);
 
             _showingCorrectBox = true;
+            btnBenchmark.Enabled = true;
         }
     }
 }
