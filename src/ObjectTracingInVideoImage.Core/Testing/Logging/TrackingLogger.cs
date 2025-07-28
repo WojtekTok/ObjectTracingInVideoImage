@@ -56,7 +56,7 @@ namespace ObjectTracingInVideoImage.Core.Testing.Logging
             Directory.CreateDirectory(folderPath);
             string dateStamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             string resultFileName = $"{folderName}_{dateStamp}.csv";
-            return = Path.Combine(folderPath, resultFileName);
+            return Path.Combine(folderPath, resultFileName);
         }
     }
 }

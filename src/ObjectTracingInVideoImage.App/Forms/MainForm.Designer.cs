@@ -51,12 +51,13 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnLoadVideo
             // 
+            btnLoadVideo.BackColor = Color.Orange;
             btnLoadVideo.Location = new Point(12, 12);
             btnLoadVideo.Name = "btnLoadVideo";
             btnLoadVideo.Size = new Size(104, 41);
             btnLoadVideo.TabIndex = 0;
             btnLoadVideo.Text = "Load video file";
-            btnLoadVideo.UseVisualStyleBackColor = true;
+            btnLoadVideo.UseVisualStyleBackColor = false;
             btnLoadVideo.Click += BtnLoadVideoFile_Click;
             // 
             // pictureBoxVideo
@@ -75,6 +76,7 @@ namespace ObjectTracingVideoImage.App
             // numericFpsOverride
             // 
             numericFpsOverride.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            numericFpsOverride.BackColor = Color.Orange;
             numericFpsOverride.Location = new Point(67, 59);
             numericFpsOverride.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericFpsOverride.Name = "numericFpsOverride";
@@ -85,13 +87,14 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnPlayVideo
             // 
+            btnPlayVideo.BackColor = Color.Orange;
             btnPlayVideo.Enabled = false;
             btnPlayVideo.Location = new Point(12, 88);
             btnPlayVideo.Name = "btnPlayVideo";
             btnPlayVideo.Size = new Size(75, 40);
             btnPlayVideo.TabIndex = 3;
             btnPlayVideo.Text = "▶️";
-            btnPlayVideo.UseVisualStyleBackColor = true;
+            btnPlayVideo.UseVisualStyleBackColor = false;
             btnPlayVideo.Click += BtnPlayVideo_Click;
             // 
             // labelFps
@@ -105,6 +108,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // comboBoxTracker
             // 
+            comboBoxTracker.BackColor = SystemColors.Window;
             comboBoxTracker.FormattingEnabled = true;
             comboBoxTracker.Location = new Point(11, 181);
             comboBoxTracker.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -119,13 +123,14 @@ namespace ObjectTracingVideoImage.App
             // 
             checkBoxTestMode.Appearance = Appearance.Button;
             checkBoxTestMode.AutoSize = true;
+            checkBoxTestMode.BackColor = Color.Orange;
             checkBoxTestMode.Enabled = false;
             checkBoxTestMode.Location = new Point(11, 210);
             checkBoxTestMode.Name = "checkBoxTestMode";
             checkBoxTestMode.Size = new Size(120, 25);
             checkBoxTestMode.TabIndex = 6;
             checkBoxTestMode.Text = "Show Ground Truth\r\n";
-            checkBoxTestMode.UseVisualStyleBackColor = true;
+            checkBoxTestMode.UseVisualStyleBackColor = false;
             checkBoxTestMode.CheckedChanged += CheckBoxTestMode_CheckedChanged;
             // 
             // labelIoU
@@ -139,13 +144,14 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnInitTrackerWithGroundTruth
             // 
+            btnInitTrackerWithGroundTruth.BackColor = Color.Orange;
             btnInitTrackerWithGroundTruth.Enabled = false;
             btnInitTrackerWithGroundTruth.Location = new Point(11, 241);
             btnInitTrackerWithGroundTruth.Name = "btnInitTrackerWithGroundTruth";
             btnInitTrackerWithGroundTruth.Size = new Size(75, 23);
             btnInitTrackerWithGroundTruth.TabIndex = 8;
             btnInitTrackerWithGroundTruth.Text = "Initialize tracking";
-            btnInitTrackerWithGroundTruth.UseVisualStyleBackColor = true;
+            btnInitTrackerWithGroundTruth.UseVisualStyleBackColor = false;
             btnInitTrackerWithGroundTruth.Click += BtnInitTrackerWithGroundTruth_Click;
             // 
             // labelFramesNumber
@@ -160,16 +166,18 @@ namespace ObjectTracingVideoImage.App
             // checkBoxVisualizeKalman
             // 
             checkBoxVisualizeKalman.AutoSize = true;
+            checkBoxVisualizeKalman.BackColor = SystemColors.ControlDarkDark;
             checkBoxVisualizeKalman.Enabled = false;
             checkBoxVisualizeKalman.Location = new Point(21, 344);
             checkBoxVisualizeKalman.Name = "checkBoxVisualizeKalman";
             checkBoxVisualizeKalman.Size = new Size(143, 19);
             checkBoxVisualizeKalman.TabIndex = 10;
             checkBoxVisualizeKalman.Text = "Visualize Kalman Filter";
-            checkBoxVisualizeKalman.UseVisualStyleBackColor = true;
+            checkBoxVisualizeKalman.UseVisualStyleBackColor = false;
             // 
             // btnReloadFile
             // 
+            btnReloadFile.BackColor = Color.Orange;
             btnReloadFile.Enabled = false;
             btnReloadFile.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 238);
             btnReloadFile.Location = new Point(93, 100);
@@ -177,29 +185,32 @@ namespace ObjectTracingVideoImage.App
             btnReloadFile.Size = new Size(31, 28);
             btnReloadFile.TabIndex = 11;
             btnReloadFile.Text = "⟲";
-            btnReloadFile.UseVisualStyleBackColor = true;
+            btnReloadFile.UseVisualStyleBackColor = false;
             btnReloadFile.Click += BtnReloadFile_Click;
             // 
             // btnBenchmark
             // 
+            btnBenchmark.BackColor = Color.Orange;
             btnBenchmark.Enabled = false;
+            btnBenchmark.ForeColor = SystemColors.ControlText;
             btnBenchmark.Location = new Point(17, 405);
             btnBenchmark.Name = "btnBenchmark";
             btnBenchmark.Size = new Size(141, 32);
             btnBenchmark.TabIndex = 12;
             btnBenchmark.Text = "Benchmark trackers";
-            btnBenchmark.UseVisualStyleBackColor = true;
+            btnBenchmark.UseVisualStyleBackColor = false;
             btnBenchmark.Click += BtnBenchmark_Click;
             // 
             // btnViewChart
             // 
+            btnViewChart.BackColor = Color.Orange;
             btnViewChart.Location = new Point(26, 375);
             btnViewChart.Name = "btnViewChart";
             btnViewChart.Size = new Size(112, 25);
             btnViewChart.TabIndex = 13;
             btnViewChart.Text = "View Chart";
-            btnViewChart.UseVisualStyleBackColor = true;
-            // TODO btnViewChart.Click += BtnViewChart_Click;
+            btnViewChart.UseVisualStyleBackColor = false;
+            btnViewChart.Click += BtnViewChart_Click;
             // 
             // labelChooseFps
             // 
@@ -214,6 +225,7 @@ namespace ObjectTracingVideoImage.App
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = SystemColors.ControlDarkDark;
             ClientSize = new Size(845, 450);
             Controls.Add(labelChooseFps);
             Controls.Add(btnViewChart);

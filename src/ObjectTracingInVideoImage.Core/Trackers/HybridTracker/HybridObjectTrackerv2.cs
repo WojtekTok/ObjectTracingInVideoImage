@@ -74,6 +74,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
 
             if (_frameCountSinceSiam >= FramesEverySiamTrack || !_wasLastTrackingSuccessful)
             {
+                LastUsedTracker = TrackerType.Siammask;
+
                 PointF roi = predictedCenter;
 
                 if (_consecutiveSiamFailures >= MaxSiamFailures && _consecutiveSiamFailures % 2 == 0 && _lastValidDetection.HasValue)
@@ -125,6 +127,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
             }
 
             Rectangle? trackedRect = TrackClassicTracker(frame);
+            LastUsedTracker = _currentTrackerType;
+
             if (trackedRect.HasValue)
             {
                 PointF observed = new PointF(

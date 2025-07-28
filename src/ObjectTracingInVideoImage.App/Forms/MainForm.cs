@@ -11,6 +11,7 @@ using ObjectTracingInVideoImage.Core.KalmanFilter;
 using ObjectTracingInVideoImage.Core.Testing.Logging;
 using ObjectTracingInVideoImage.Core.Trackers.HybridTracker;
 using System.IO;
+using ObjectTracingInVideoImage.App.Forms;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -126,12 +127,9 @@ namespace ObjectTracingVideoImage.App
                 double? iou = null;
                 groundTruthRect = _groundTruthData.GetBox(_testFrameCounter);
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
-                if (!skipMetrics && groundTruthRect.HasValue)
-                {
-                    iou = _evaluator.EvaluateFrame(_testFrameCounter, rect);
-                }
+                iou = _evaluator.EvaluateFrame(_testFrameCounter, rect);
 
-                if(groundTruthRect.HasValue && !groundTruthRect.Value.IsEmpty)
+                if(iou.HasValue)
                 {
                     var wasDetected = rect.HasValue && !rect.Value.IsEmpty;
                     TrackerType? usedTracker = null;
@@ -139,7 +137,7 @@ namespace ObjectTracingVideoImage.App
                     {
                         usedTracker = tracker.LastUsedTracker;
                     }
-                    _trackingLogger?.Log(_frameCounter, wasDetected, iou, usedTracker);
+                    _trackingLogger?.Log(_testFrameCounter, wasDetected, iou, usedTracker);
                 }
             }
 
@@ -297,6 +295,22 @@ namespace ObjectTracingVideoImage.App
             else
             {
                 MessageBox.Show("Benchmarking is only available for image sequences.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BtnViewChart_Click(object sender, EventArgs e)
+        {
+            using (var ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "CSV files (*.csv)|*.csv";
+                ofd.Title = "Wybierz plik wyników śledzenia";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    string selectedPath = ofd.FileName;
+                    var chartForm = new BenchmarkForm(selectedPath);
+                    chartForm.Show();
+                }
             }
         }
 
