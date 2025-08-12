@@ -51,7 +51,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnLoadVideo
             // 
-            btnLoadVideo.BackColor = Color.Orange;
+            btnLoadVideo.BackColor = SystemColors.Control;
             btnLoadVideo.Location = new Point(12, 12);
             btnLoadVideo.Name = "btnLoadVideo";
             btnLoadVideo.Size = new Size(104, 41);
@@ -76,7 +76,7 @@ namespace ObjectTracingVideoImage.App
             // numericFpsOverride
             // 
             numericFpsOverride.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            numericFpsOverride.BackColor = Color.Orange;
+            numericFpsOverride.BackColor = SystemColors.Control;
             numericFpsOverride.Location = new Point(67, 59);
             numericFpsOverride.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericFpsOverride.Name = "numericFpsOverride";
@@ -87,7 +87,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnPlayVideo
             // 
-            btnPlayVideo.BackColor = Color.Orange;
+            btnPlayVideo.BackColor = SystemColors.Control;
             btnPlayVideo.Enabled = false;
             btnPlayVideo.Location = new Point(12, 88);
             btnPlayVideo.Name = "btnPlayVideo";
@@ -123,7 +123,7 @@ namespace ObjectTracingVideoImage.App
             // 
             checkBoxTestMode.Appearance = Appearance.Button;
             checkBoxTestMode.AutoSize = true;
-            checkBoxTestMode.BackColor = Color.Orange;
+            checkBoxTestMode.BackColor = SystemColors.Control;
             checkBoxTestMode.Enabled = false;
             checkBoxTestMode.Location = new Point(11, 210);
             checkBoxTestMode.Name = "checkBoxTestMode";
@@ -144,7 +144,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnInitTrackerWithGroundTruth
             // 
-            btnInitTrackerWithGroundTruth.BackColor = Color.Orange;
+            btnInitTrackerWithGroundTruth.BackColor = SystemColors.Control;
             btnInitTrackerWithGroundTruth.Enabled = false;
             btnInitTrackerWithGroundTruth.Location = new Point(11, 241);
             btnInitTrackerWithGroundTruth.Name = "btnInitTrackerWithGroundTruth";
@@ -177,7 +177,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnReloadFile
             // 
-            btnReloadFile.BackColor = Color.Orange;
+            btnReloadFile.BackColor = SystemColors.Control;
             btnReloadFile.Enabled = false;
             btnReloadFile.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 238);
             btnReloadFile.Location = new Point(93, 100);
@@ -190,7 +190,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnBenchmark
             // 
-            btnBenchmark.BackColor = Color.Orange;
+            btnBenchmark.BackColor = SystemColors.Control;
             btnBenchmark.Enabled = false;
             btnBenchmark.ForeColor = SystemColors.ControlText;
             btnBenchmark.Location = new Point(17, 405);
@@ -203,7 +203,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // btnViewChart
             // 
-            btnViewChart.BackColor = Color.Orange;
+            btnViewChart.BackColor = SystemColors.Control;
             btnViewChart.Location = new Point(26, 375);
             btnViewChart.Name = "btnViewChart";
             btnViewChart.Size = new Size(112, 25);

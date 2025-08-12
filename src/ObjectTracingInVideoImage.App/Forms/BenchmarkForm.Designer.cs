@@ -41,6 +41,7 @@ namespace ObjectTracingInVideoImage.App.Forms
             benchmarkPlot.Name = "benchmarkPlot";
             benchmarkPlot.Size = new Size(1111, 261);
             benchmarkPlot.TabIndex = 0;
+
             var path = new GraphicsPath();
             int radius = 20;
             path.AddArc(0, 0, radius, radius, 180, 90);

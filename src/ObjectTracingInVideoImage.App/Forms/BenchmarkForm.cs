@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using ScottPlot;
-using ScottPlot.Plottables;
 using Color = System.Drawing.Color;
 
 namespace ObjectTracingInVideoImage.App.Forms
