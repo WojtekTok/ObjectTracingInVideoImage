@@ -18,14 +18,50 @@ namespace ObjectTracingInVideoImage.App.Forms
 
         private void LoadChart()
         {
-            var lines = File.ReadAllLines(_csvPath).Skip(1);
+            var (frameList, iouList, detectedList, trackerList) = LoadCsvData(_csvPath);
 
-            var frameList = new List<int>();
-            var iouList = new List<double>();
-            var detectedList = new List<bool>();
-            var trackerList = new List<string?>();
+            benchmarkPlot.Plot.Clear();
 
-            var colorMap = new Dictionary<string, Color>
+            var segments = BuildSegments(frameList, iouList, detectedList, trackerList);
+
+            PlotSegments(segments);
+
+            StylePlot();
+            benchmarkPlot.Refresh();
+        }
+
+        private (List<int> frames, List<double> ious, List<bool> detected, List<string?> trackers) LoadCsvData(string path)
+        {
+            var frames = new List<int>();
+            var ious = new List<double>();
+            var detected = new List<bool>();
+            var trackers = new List<string?>();
+
+            foreach (var line in File.ReadLines(path).Skip(1))
+            {
+                var parts = line.Split(',');
+                if (parts.Length >= 4 &&
+                    int.TryParse(parts[0], out int frame) &&
+                    bool.TryParse(parts[1], out bool det) &&
+                    double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double iou))
+                {
+                    frames.Add(frame);
+                    detected.Add(det);
+                    trackers.Add(string.IsNullOrWhiteSpace(parts[3]) ? null : parts[3].Trim().ToLowerInvariant());
+                    ious.Add(iou);
+                }
+            }
+
+            return (frames, ious, detected, trackers);
+        }
+
+        private List<(List<double> x, List<double> y, Color color, string label)> BuildSegments(
+            List<int> frameList,
+            List<double> iouList,
+            List<bool> detectedList,
+            List<string?> trackerList)
+        {
+            var colorMap = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
             {
                 ["kcf"] = Color.Orange,
                 ["csrt"] = Color.DodgerBlue,
@@ -33,43 +69,51 @@ namespace ObjectTracingInVideoImage.App.Forms
                 ["siammask"] = Color.DeepPink,
             };
 
-            foreach (var line in File.ReadLines(_csvPath))
+            var labelMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                var parts = line.Split(',');
+                ["kcf"] = "KCF",
+                ["csrt"] = "CSRT",
+                ["mil"] = "MIL",
+                ["siammask"] = "SiamMask",
+            };
 
-                if (parts.Length >= 4 &&
-                    int.TryParse(parts[0], out int frame) &&
-                    bool.TryParse(parts[1], out bool detected) &&
-                    double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double iou))
-                {
-                    frameList.Add(frame);
-                    detectedList.Add(detected);
-                    iouList.Add(iou);
-                    trackerList.Add(string.IsNullOrWhiteSpace(parts[3]) ? null : parts[3].Trim().ToLowerInvariant());
-                }
-            }
+            Color noDetectionColor = Color.LightGray;
+            string noDetectionLabel = "Failed";
 
-            benchmarkPlot.Plot.Clear();
-            var segments = new List<(List<double> x, List<double> y, Color color)>();
+            var segments = new List<(List<double> x, List<double> y, Color color, string label)>();
+
             List<double> currentX = new();
             List<double> currentY = new();
             string? currentTracker = trackerList[0];
+            bool currentDetected = detectedList[0];
 
             for (int i = 0; i < frameList.Count; i++)
             {
                 string? tracker = trackerList[i];
+                bool detected = detectedList[i];
 
-                if (tracker != currentTracker || i == frameList.Count - 1)
+                if (tracker != currentTracker || detected != currentDetected)
                 {
                     if (currentX.Count > 0)
                     {
-                        var color = currentTracker != null && colorMap.TryGetValue(currentTracker, out var c) ? c : Color.Orange;
-                        segments.Add((new List<double>(currentX), new List<double>(currentY), color));
+                        var color = currentDetected
+                            ? (currentTracker != null && colorMap.TryGetValue(currentTracker, out var c) ? c : Color.Orange)
+                            : noDetectionColor;
+
+                        var label = currentDetected
+                            ? (currentTracker != null && labelMap.TryGetValue(currentTracker, out var l) ? l : currentTracker)
+                            : noDetectionLabel;
+
+                        segments.Add((new List<double>(currentX), new List<double>(currentY), color, label));
+
+                        currentX.Clear();
+                        currentY.Clear();
+                        currentX.Add(frameList[i - 1]);
+                        currentY.Add(iouList[i - 1]);
                     }
 
-                    currentX.Clear();
-                    currentY.Clear();
                     currentTracker = tracker;
+                    currentDetected = detected;
                 }
 
                 currentX.Add(frameList[i]);
@@ -78,66 +122,50 @@ namespace ObjectTracingInVideoImage.App.Forms
 
             if (currentX.Count > 0)
             {
-                var color = currentTracker != null && colorMap.TryGetValue(currentTracker, out var c) ? c : Color.Orange;
-                segments.Add((currentX, currentY, color));
+                var color = currentDetected
+                    ? (currentTracker != null && colorMap.TryGetValue(currentTracker, out var c) ? c : Color.Orange)
+                    : noDetectionColor;
+
+                var label = currentDetected
+                    ? (currentTracker != null && labelMap.TryGetValue(currentTracker, out var l) ? l : currentTracker)
+                    : noDetectionLabel;
+
+                segments.Add((currentX, currentY, color, label));
             }
 
-            //foreach (var segment in segments)
-            //{
-            //    if (segment.x.Count == 1)
-            //    {
-            //        // Pojedynczy punkt – narysuj jako marker
-            //        var scatter = benchmarkPlot.Plot.Add.ScatterPoints(
-            //            xs: segment.x.ToArray(),
-            //            ys: segment.y.ToArray(),
-            //            color: ScottPlot.Color.FromColor(segment.color)
-            //        );
-            //        scatter.MarkerSize = 2; // Ustaw rozmiar markera
-            //    }
-            //    else
-            //    {
-            //        // Normalna linia
-            //        benchmarkPlot.Plot.Add.ScatterLine(
-            //            xs: segment.x.ToArray(),
-            //            ys: segment.y.ToArray(),
-            //            color: ScottPlot.Color.FromColor(segment.color)
-            //        );
-            //    }
-            //}
+            return segments;
+        }
+
+        private void PlotSegments(List<(List<double> x, List<double> y, Color color, string label)> segments)
+        {
+            var legendAdded = new HashSet<string>();
 
             foreach (var segment in segments)
             {
-                benchmarkPlot.Plot.Add.ScatterLine(segment.x.ToArray(), segment.y.ToArray(), color: ScottPlot.Color.FromColor(segment.color));
+                var line = benchmarkPlot.Plot.Add.ScatterLine(
+                    segment.x.ToArray(),
+                    segment.y.ToArray(),
+                    color: ScottPlot.Color.FromColor(segment.color)
+                );
+
+                if (!legendAdded.Contains(segment.label))
+                {
+                    line.LegendText = segment.label;
+                    legendAdded.Add(segment.label);
+                }
             }
-
-
-            //scatter.MarkerSize = 0;
-            benchmarkPlot.Plot.Axes.Bottom.Label.Text = "";
-            benchmarkPlot.Plot.Title("IoU over Time");
-            benchmarkPlot.Plot.Axes.Left.Label.Text = "IoU";
-            benchmarkPlot.Plot.Legend.IsVisible = false;
-            benchmarkPlot.Plot.SetStyle(new ScottPlot.PlotStyles.Dark());
-            benchmarkPlot.Plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.EmptyTickGenerator();
-
-            //detectedPlot.Plot.Clear();
-            //var detectedScatter = detectedPlot.Plot.Add.Scatter(
-            //    detectionFrames.ToArray(),
-            //    detectionValues.ToArray());
-
-            //scatter.MarkerSize = 10;
-            //scatter.MarkerColor = detectionColors.ToArray();
-            //scatter.LineStyle = LineStyle.None;
-            //scatter.
-
-            //detectedPlot.Plot.Axes.Bottom.Label.Text = "Frame";
-            //detectedPlot.Plot.Axes.Left.Label.Text = "";
-            //detectedPlot.Plot.SetStyle(Style.Dark);
-            //detectedPlot.Plot.Axes.Left.TickGenerator = new ScottPlot.TickGenerators.NumericFixed(0, 1); // tylko 1 poziom
-            //detectedPlot.Plot.Axes.Left.MajorTickStyle.IsVisible = false;
-            //detectedPlot.Plot.Axes.Left.Label.Text = "Detection";
-
-
-            benchmarkPlot.Refresh();
         }
+
+        private void StylePlot()
+        {
+            string fileName = Path.GetFileName(_csvPath);
+            benchmarkPlot.Plot.Title($"IoU over Time – {fileName}");
+            benchmarkPlot.Plot.Axes.Left.Label.Text = "IoU";
+            benchmarkPlot.Plot.SetStyle(new ScottPlot.PlotStyles.Dark());
+            benchmarkPlot.Plot.Legend.IsVisible = true;
+            benchmarkPlot.Plot.Legend.Alignment = ScottPlot.Alignment.LowerLeft;
+            benchmarkPlot.Plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.EmptyTickGenerator();
+        }
+
     }
 }

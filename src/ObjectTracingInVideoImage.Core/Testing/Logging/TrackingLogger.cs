@@ -22,10 +22,10 @@ namespace ObjectTracingInVideoImage.Core.Testing.Logging
             });
         }
 
-        public void SaveToCsv(string imageDirectory)
+        public void SaveToCsv(string imageDirectory, string trackerName)
         {
             _stopwatch.Stop();
-            var fullPath = GetFullPathToSaveBenchmarkData(imageDirectory);
+            var fullPath = GetFullPathToSaveBenchmarkData(imageDirectory, trackerName);
 
             using var writer = new StreamWriter(fullPath);
             writer.WriteLine("Frame,Detected,IoU,TrackerType");
@@ -46,7 +46,7 @@ namespace ObjectTracingInVideoImage.Core.Testing.Logging
             _entries.Clear();
         }
 
-        private string GetFullPathToSaveBenchmarkData(string imageDirectory)
+        private string GetFullPathToSaveBenchmarkData(string imageDirectory, string trackerName)
         {
             string? directory = Path.GetDirectoryName(imageDirectory);
             string folderName = Path.GetFileName(directory ?? string.Empty);
@@ -54,8 +54,8 @@ namespace ObjectTracingInVideoImage.Core.Testing.Logging
             string projectRoot = Path.GetFullPath(Path.Combine(baseDir, @"..\..\.."));
             var folderPath = Path.Combine(projectRoot, "TrackingResults");
             Directory.CreateDirectory(folderPath);
-            string dateStamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            string resultFileName = $"{folderName}_{dateStamp}.csv";
+            string dateStamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm");
+            string resultFileName = $"{folderName}_{trackerName}_{dateStamp}.csv";
             return Path.Combine(folderPath, resultFileName);
         }
     }

@@ -1,4 +1,6 @@
-﻿namespace ObjectTracingInVideoImage.App.Forms
+﻿using System.Drawing.Drawing2D;
+
+namespace ObjectTracingInVideoImage.App.Forms
 {
     partial class BenchmarkForm
     {
@@ -29,34 +31,31 @@
         private void InitializeComponent()
         {
             benchmarkPlot = new ScottPlot.WinForms.FormsPlot();
-            detectedPlot = new ScottPlot.WinForms.FormsPlot();
             SuspendLayout();
             // 
             // benchmarkPlot
             // 
             benchmarkPlot.BackColor = SystemColors.Control;
             benchmarkPlot.DisplayScale = 1F;
-            benchmarkPlot.Location = new Point(14, 10);
+            benchmarkPlot.Location = new Point(12, 12);
             benchmarkPlot.Name = "benchmarkPlot";
-            benchmarkPlot.Size = new Size(530, 345);
+            benchmarkPlot.Size = new Size(1111, 261);
             benchmarkPlot.TabIndex = 0;
-            // 
-            // detectedPlot
-            // 
-            detectedPlot.BackColor = SystemColors.Control;
-            detectedPlot.DisplayScale = 1F;
-            detectedPlot.Location = new Point(14, 348);
-            detectedPlot.Name = "detectedPlot";
-            detectedPlot.Size = new Size(530, 61);
-            detectedPlot.TabIndex = 1;
+            var path = new GraphicsPath();
+            int radius = 20;
+            path.AddArc(0, 0, radius, radius, 180, 90);
+            path.AddArc(benchmarkPlot.Width - radius, 0, radius, radius, 270, 90);
+            path.AddArc(benchmarkPlot.Width - radius, benchmarkPlot.Height - radius, radius, radius, 0, 90);
+            path.AddArc(0, benchmarkPlot.Height - radius, radius, radius, 90, 90);
+            path.CloseAllFigures();
+            benchmarkPlot.Region = new Region(path);
             // 
             // BenchmarkForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(800, 450);
-            Controls.Add(detectedPlot);
+            ClientSize = new Size(1135, 414);
             Controls.Add(benchmarkPlot);
             Name = "BenchmarkForm";
             Text = "BenchmarkForm";
@@ -66,6 +65,5 @@
         #endregion
 
         private ScottPlot.WinForms.FormsPlot benchmarkPlot;
-        private ScottPlot.WinForms.FormsPlot detectedPlot;
     }
 }

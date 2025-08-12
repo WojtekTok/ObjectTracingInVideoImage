@@ -89,7 +89,7 @@ namespace ObjectTracingVideoImage.App
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 if (_trackingLogger != null && _imageDirectory != null)
                 {
-                    _trackingLogger.SaveToCsv(_imageDirectory);
+                    _trackingLogger.SaveToCsv(_imageDirectory, (string)comboBoxTracker.SelectedItem!);
                 }
                 _tracker?.Dispose();
 
@@ -129,15 +129,9 @@ namespace ObjectTracingVideoImage.App
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
                 iou = _evaluator.EvaluateFrame(_testFrameCounter, rect);
 
-                if(iou.HasValue)
+                if(iou.HasValue && _trackingLogger is not null)
                 {
-                    var wasDetected = rect.HasValue && !rect.Value.IsEmpty;
-                    TrackerType? usedTracker = null;
-                    if (_tracker is HybridObjectTrackerv2 tracker)
-                    {
-                        usedTracker = tracker.LastUsedTracker;
-                    }
-                    _trackingLogger?.Log(_testFrameCounter, wasDetected, iou, usedTracker);
+                    LogData(rect, iou);
                 }
             }
 
@@ -358,6 +352,21 @@ namespace ObjectTracingVideoImage.App
 
             _showingCorrectBox = true;
             btnBenchmark.Enabled = true;
+        }
+
+        private void LogData(Rectangle? rect, double? iou)
+        {
+            var wasDetected = rect.HasValue && !rect.Value.IsEmpty;
+            TrackerType? usedTracker = null;
+            if (_tracker is HybridObjectTrackerv2 tracker)
+            {
+                usedTracker = tracker.LastUsedTracker;
+            }
+            else
+            {
+                usedTracker = (TrackerType?)comboBoxTracker.SelectedItem;
+            }
+            _trackingLogger.Log(_testFrameCounter, wasDetected, iou, usedTracker);
         }
     }
 }
