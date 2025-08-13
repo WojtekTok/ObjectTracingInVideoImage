@@ -13,6 +13,7 @@ using ObjectTracingInVideoImage.Core.Trackers.HybridTracker;
 using System.IO;
 using ObjectTracingInVideoImage.App.Forms;
 using Emgu.CV.CvEnum;
+using ObjectTracingInVideoImage.App.Visualizers;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -112,10 +113,10 @@ namespace ObjectTracingVideoImage.App
         {
             if (!IsHandleCreated) return;
 
-            Rectangle? rect = null;
+            Rectangle? actualRectangle = null;
             if (_tracker != null)
             {
-                rect = await Task.Run(() => _tracker.Track(mat));
+                actualRectangle = await Task.Run(() => _tracker.Track(mat));
             }
 
             Rectangle? groundTruthRect = null;
@@ -126,11 +127,11 @@ namespace ObjectTracingVideoImage.App
                 double? iou = null;
                 groundTruthRect = _groundTruthData.GetBox(_testFrameCounter);
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
-                iou = _evaluator.EvaluateFrame(_testFrameCounter, rect);
+                iou = _evaluator.EvaluateFrame(_testFrameCounter, actualRectangle);
 
                 if(iou.HasValue && _trackingLogger is not null && _isBenchmarkRunning)
                 {
-                    LogData(rect, iou);
+                    LogData(actualRectangle, iou);
                 }
             }
 
@@ -138,52 +139,47 @@ namespace ObjectTracingVideoImage.App
             {
                 await this.InvokeAsync(() =>
                 {
-                    pictureBoxVideo.Image?.Dispose();
-                    _lastFrame = mat.Clone();
-
-                    if (_tracker is IKalmanTracker kalmanTracker && checkBoxVisualizeKalman.Checked)
-                    {
-                        KalmanVisualizer.DrawPaths(mat, kalmanTracker.GetKalmanData());
-                    }
-
-
-                    Bitmap bitmap = mat.ToBitmap();
-
-                    if (groundTruthRect.HasValue)
-                    {
-                        using var g = Graphics.FromImage(bitmap);
-                        using var pen = new Pen(Color.LimeGreen, 2);
-                        g.DrawRectangle(pen, groundTruthRect.Value);
-                    }
-
-                    if (rect.HasValue)
-                    {
-                        using var g = Graphics.FromImage(bitmap);
-                        using var pen = new Pen(Color.Red, 2);
-                        g.DrawRectangle(pen, rect.Value);
-                    }
-                    if (!_rectangleSelector.IsSelecting)
-                    {
-                        _rectangleSelector.Clear();
-                    }
-
-                    pictureBoxVideo.Image = bitmap;
-                    _frameCounter++;
-
-                    DisplayCurrentFps();
-                    if (_showingCorrectBox && _evaluator != null)
-                    {
-                        labelIoU.Text = $"Mean IoU: {_evaluator.MeanIoU:F3}";
-                        labelFramesNumber.Text = $"Frames: {_evaluator.TestedFrames}";
-                    }
-                    pictureBoxVideo.Invalidate();
-
-                    mat.Dispose();
+                    DisplayProcessedFrame(mat, actualRectangle, groundTruthRect);
                 });
             }
+            RealTimeDataDisplayUpdate();
             _testFrameCounter++;
         }
 
+        private void DisplayProcessedFrame(Mat mat, Rectangle? actualRectangle, Rectangle? groundTruthRectangle)
+        {
+            pictureBoxVideo.Image?.Dispose();
+            _lastFrame = mat.Clone();
+
+            if (_tracker is IKalmanTracker kalmanTracker && checkBoxVisualizeKalman.Checked)
+            {
+                KalmanVisualizer.DrawPaths(mat, kalmanTracker.GetKalmanData());
+            }
+
+            Bitmap bitmap = mat.ToBitmap();
+            BoundingBoxVisualizer.DrawBoxes(bitmap, actualRectangle, groundTruthRectangle);
+
+            if (!_rectangleSelector.IsSelecting)
+            {
+                _rectangleSelector.Clear();
+            }
+
+            pictureBoxVideo.Image = bitmap;
+            _frameCounter++;
+
+            mat.Dispose();
+        }
+
+        private void RealTimeDataDisplayUpdate()
+        {
+            DisplayCurrentFps();
+            if (_showingCorrectBox && _evaluator != null)
+            {
+                labelIoU.Text = $"Mean IoU: {_evaluator.MeanIoU:F3}";
+                labelFramesNumber.Text = $"Frames: {_evaluator.TestedFrames}";
+            }
+            pictureBoxVideo.Invalidate();
+        }
 
         private void DisplayCurrentFps()
         {
@@ -313,8 +309,6 @@ namespace ObjectTracingVideoImage.App
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 _tracker?.Dispose();
                 _trackingLogger.SaveToCsv(_imageDirectory, comboBoxTracker.SelectedItem.ToString()!);
-                // refactor tu sie nalezy z całym invoke, przymyśleć czy nie aktualizować fps mimo braku aktualizacji rysunku
-                // chyba do visualizers wyrzuce rysowanie prostokata, to brzmi bardzo sensownie
                 // przemylsec czy nie zmienic inicjalizacji ground truth, typu przy zaladowaniu laduj ground truth i wlaczaj lub nie przycisk show ground truth box
                 // przemyslec czy robic ten przycisk toggle ui, niby spoko ale nie wiem
                 // poprawic ui i gotowe
