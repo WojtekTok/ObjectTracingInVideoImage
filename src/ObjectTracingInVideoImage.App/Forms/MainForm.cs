@@ -12,6 +12,7 @@ using ObjectTracingInVideoImage.Core.Testing.Logging;
 using ObjectTracingInVideoImage.Core.Trackers.HybridTracker;
 using System.IO;
 using ObjectTracingInVideoImage.App.Forms;
+using Emgu.CV.CvEnum;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -30,6 +31,7 @@ namespace ObjectTracingVideoImage.App
         private TrackingEvaluator _evaluator;
         private bool _showingCorrectBox = false;
         private int _testFrameCounter = 0;
+        private bool _isBenchmarkRunning = false;
 
         public MainForm()
         {
@@ -87,10 +89,7 @@ namespace ObjectTracingVideoImage.App
                 btnPlayVideo.Text = "⏸️";
 
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
-                if (_trackingLogger != null && _imageDirectory != null)
-                {
-                    _trackingLogger.SaveToCsv(_imageDirectory, (string)comboBoxTracker.SelectedItem!);
-                }
+
                 _tracker?.Dispose();
 
             }
@@ -129,57 +128,60 @@ namespace ObjectTracingVideoImage.App
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
                 iou = _evaluator.EvaluateFrame(_testFrameCounter, rect);
 
-                if(iou.HasValue && _trackingLogger is not null)
+                if(iou.HasValue && _trackingLogger is not null && _isBenchmarkRunning)
                 {
                     LogData(rect, iou);
                 }
             }
 
-            await this.InvokeAsync(() =>
+            if (!_isBenchmarkRunning || _testFrameCounter % 10 == 0)
             {
-                pictureBoxVideo.Image?.Dispose();
-                _lastFrame = mat.Clone();
-
-                if (_tracker is IKalmanTracker kalmanTracker && checkBoxVisualizeKalman.Checked)
+                await this.InvokeAsync(() =>
                 {
-                    KalmanVisualizer.DrawPaths(mat, kalmanTracker.GetKalmanData());
-                }
+                    pictureBoxVideo.Image?.Dispose();
+                    _lastFrame = mat.Clone();
+
+                    if (_tracker is IKalmanTracker kalmanTracker && checkBoxVisualizeKalman.Checked)
+                    {
+                        KalmanVisualizer.DrawPaths(mat, kalmanTracker.GetKalmanData());
+                    }
 
 
-                Bitmap bitmap = mat.ToBitmap();
+                    Bitmap bitmap = mat.ToBitmap();
 
-                if (groundTruthRect.HasValue)
-                {
-                    using var g = Graphics.FromImage(bitmap);
-                    using var pen = new Pen(Color.LimeGreen, 2);
-                    g.DrawRectangle(pen, groundTruthRect.Value);
-                }
+                    if (groundTruthRect.HasValue)
+                    {
+                        using var g = Graphics.FromImage(bitmap);
+                        using var pen = new Pen(Color.LimeGreen, 2);
+                        g.DrawRectangle(pen, groundTruthRect.Value);
+                    }
 
-                if (rect.HasValue)
-                {
-                    using var g = Graphics.FromImage(bitmap);
-                    using var pen = new Pen(Color.Red, 2);
-                    g.DrawRectangle(pen, rect.Value);
-                }
-                if (!_rectangleSelector.IsSelecting)
-                {
-                    _rectangleSelector.Clear();
-                }
+                    if (rect.HasValue)
+                    {
+                        using var g = Graphics.FromImage(bitmap);
+                        using var pen = new Pen(Color.Red, 2);
+                        g.DrawRectangle(pen, rect.Value);
+                    }
+                    if (!_rectangleSelector.IsSelecting)
+                    {
+                        _rectangleSelector.Clear();
+                    }
 
-                pictureBoxVideo.Image = bitmap;
-                _frameCounter++;
-                _testFrameCounter++;
+                    pictureBoxVideo.Image = bitmap;
+                    _frameCounter++;
 
-                DisplayCurrentFps();
-                if (_showingCorrectBox && _evaluator != null)
-                {
-                    labelIoU.Text = $"Mean IoU: {_evaluator.MeanIoU:F3}";
-                    labelFramesNumber.Text = $"Frames: {_evaluator.TestedFrames}";
-                }
-                pictureBoxVideo.Invalidate();
+                    DisplayCurrentFps();
+                    if (_showingCorrectBox && _evaluator != null)
+                    {
+                        labelIoU.Text = $"Mean IoU: {_evaluator.MeanIoU:F3}";
+                        labelFramesNumber.Text = $"Frames: {_evaluator.TestedFrames}";
+                    }
+                    pictureBoxVideo.Invalidate();
 
-                mat.Dispose();
-            });
+                    mat.Dispose();
+                });
+            }
+            _testFrameCounter++;
         }
 
 
@@ -280,17 +282,59 @@ namespace ObjectTracingVideoImage.App
             LoadCurrentFile();
         }
 
-        private void BtnBenchmark_Click(object sender, EventArgs e)
+        private async void BtnBenchmark_Click(object sender, EventArgs e)
         {
-            if (_playerManager is ImageSequenceManager imageManager)
+            _isBenchmarkRunning = true;
+            if (!(_playerManager is ImageSequenceManager imageManager))
             {
-                _trackingLogger = new TrackingLogger();
+                MessageBox.Show("Benchmarking is only available for image sequences.",
+                    "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            else
+            _trackingLogger = new TrackingLogger();
+
+            var trackerTypes = new[]
             {
-                MessageBox.Show("Benchmarking is only available for image sequences.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                TrackerType.KCF,
+                TrackerType.CSRT,
+                TrackerType.MIL,
+                TrackerType.Siammask,
+                TrackerType.Hybrid
+            };
+
+            numericFpsOverride.Value = new decimal(new int[] { 1000, 0, 0, 0 });
+
+            //ToggleUi(false);
+
+            foreach (var trackerType in trackerTypes)
+            {
+                comboBoxTracker.SelectedItem = trackerType;
+                BtnInitTrackerWithGroundTruth_Click(sender, e);
+                await _playerManager.StartVideoAsync(ProcessFrameAsync);
+                _tracker?.Dispose();
+                _trackingLogger.SaveToCsv(_imageDirectory, comboBoxTracker.SelectedItem.ToString()!);
+                // refactor tu sie nalezy z całym invoke, przymyśleć czy nie aktualizować fps mimo braku aktualizacji rysunku
+                // chyba do visualizers wyrzuce rysowanie prostokata, to brzmi bardzo sensownie
+                // przemylsec czy nie zmienic inicjalizacji ground truth, typu przy zaladowaniu laduj ground truth i wlaczaj lub nie przycisk show ground truth box
+                // przemyslec czy robic ten przycisk toggle ui, niby spoko ale nie wiem
+                // poprawic ui i gotowe
+                BtnReloadFile_Click(sender, e);
             }
+
+            //ToggleUi(true);
+
+            MessageBox.Show($"Benchmark finished.",
+                "Benchmark", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        //private void ToggleUi(bool enabled)
+        //{
+        //    btnOpen.Enabled = enabled;
+        //    btnStart.Enabled = enabled;
+        //    btnPause.Enabled = enabled;
+        //    btnBenchmark.Enabled = enabled;
+        //}
+
 
         private void BtnViewChart_Click(object sender, EventArgs e)
         {
@@ -301,9 +345,16 @@ namespace ObjectTracingVideoImage.App
 
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    string selectedPath = ofd.FileName;
-                    var chartForm = new BenchmarkForm(selectedPath);
-                    chartForm.Show();
+                    try
+                    {
+                        string selectedPath = ofd.FileName;
+                        var chartForm = new BenchmarkForm(selectedPath);
+                        chartForm.Show();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Cannot display chart", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }

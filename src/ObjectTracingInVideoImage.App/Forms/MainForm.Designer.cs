@@ -75,7 +75,7 @@ namespace ObjectTracingVideoImage.App
             // 
             // numericFpsOverride
             // 
-            numericFpsOverride.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            numericFpsOverride.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             numericFpsOverride.BackColor = SystemColors.Control;
             numericFpsOverride.Location = new Point(67, 59);
             numericFpsOverride.Minimum = new decimal(new int[] { 1, 0, 0, 0 });

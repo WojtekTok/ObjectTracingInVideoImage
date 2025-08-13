@@ -17,6 +17,8 @@ namespace ObjectTracingInVideoImage.App.Forms
         private void LoadChart()
         {
             var (frameList, iouList, detectedList, trackerList) = LoadCsvData(_csvPath);
+            if (iouList.Count() < 1)
+                throw new ArgumentOutOfRangeException("Could not retreive IoU list");
 
             benchmarkPlot.Plot.Clear();
 
