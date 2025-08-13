@@ -1,19 +1,17 @@
-﻿using ObjectTracingInVideoImage.App.Controls;
+﻿using Emgu.CV;
+using ObjectTracingInVideoImage.App.Controls;
 using ObjectTracingInVideoImage.App.Extensions;
-using ObjectTracingInVideoImage.Core.Trackers;
-using Emgu.CV;
+using ObjectTracingInVideoImage.App.Forms;
+using ObjectTracingInVideoImage.App.Visualizers;
+using ObjectTracingInVideoImage.App.Visuralizers;
 using ObjectTracingInVideoImage.Core.Enums;
 using ObjectTracingInVideoImage.Core.Factories;
+using ObjectTracingInVideoImage.Core.KalmanFilter;
 using ObjectTracingInVideoImage.Core.PlayerManager;
 using ObjectTracingInVideoImage.Core.Testing;
-using ObjectTracingInVideoImage.App.Visuralizers;
-using ObjectTracingInVideoImage.Core.KalmanFilter;
 using ObjectTracingInVideoImage.Core.Testing.Logging;
+using ObjectTracingInVideoImage.Core.Trackers;
 using ObjectTracingInVideoImage.Core.Trackers.HybridTracker;
-using System.IO;
-using ObjectTracingInVideoImage.App.Forms;
-using Emgu.CV.CvEnum;
-using ObjectTracingInVideoImage.App.Visualizers;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -63,6 +61,7 @@ namespace ObjectTracingVideoImage.App
                 {
                     _playerManager = new ImageSequenceManager();
                     checkBoxTestMode.Enabled = true;
+                    btnBenchmark.Enabled = true;
                 }
                 else if (extension == ".mp4" || extension == ".avi" || extension == ".webm")
                 {
@@ -119,13 +118,13 @@ namespace ObjectTracingVideoImage.App
                 actualRectangle = await Task.Run(() => _tracker.Track(mat));
             }
 
-            Rectangle? groundTruthRect = null;
+            Rectangle? groundTruthRectangle = null;
             bool skipMetrics = false;
 
             if (_showingCorrectBox && _groundTruthData != null)
             {
                 double? iou = null;
-                groundTruthRect = _groundTruthData.GetBox(_testFrameCounter);
+                groundTruthRectangle = _groundTruthData.GetBox(_testFrameCounter);
                 skipMetrics = _groundTruthData.IsOccluded(_testFrameCounter) || _groundTruthData.IsOutOfView(_testFrameCounter);
                 iou = _evaluator.EvaluateFrame(_testFrameCounter, actualRectangle);
 
@@ -139,7 +138,7 @@ namespace ObjectTracingVideoImage.App
             {
                 await this.InvokeAsync(() =>
                 {
-                    DisplayProcessedFrame(mat, actualRectangle, groundTruthRect);
+                    DisplayProcessedFrame(mat, actualRectangle, groundTruthRectangle);
                 });
             }
             RealTimeDataDisplayUpdate();
@@ -254,6 +253,11 @@ namespace ObjectTracingVideoImage.App
 
         private void ComboBoxTracker_SelectedIndexChanged(object sender, EventArgs e)
         {
+            EnableVisualizeKalmanCheckBox();
+        }
+
+        private void EnableVisualizeKalmanCheckBox()
+        {
             if (comboBoxTracker.SelectedItem is TrackerType selectedType)
             {
                 var kalmanTrackers = new List<TrackerType>
@@ -264,7 +268,6 @@ namespace ObjectTracingVideoImage.App
                     TrackerType.Hybrid_MIL,
                     TrackerType.Hybrid
                 };
-
                 checkBoxVisualizeKalman.Enabled = kalmanTrackers.Contains(selectedType);
             }
             else
@@ -280,13 +283,20 @@ namespace ObjectTracingVideoImage.App
 
         private async void BtnBenchmark_Click(object sender, EventArgs e)
         {
+            if (_isBenchmarkRunning)
+            {
+                Application.Restart();
+            }
+
             _isBenchmarkRunning = true;
+            btnBenchmark.Text = "Cancel Benchmark";
+
             if (!(_playerManager is ImageSequenceManager imageManager))
             {
-                MessageBox.Show("Benchmarking is only available for image sequences.",
-                    "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Benchmarking is only available for image sequences.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
+            SetGroundTruthData();
             _trackingLogger = new TrackingLogger();
 
             var trackerTypes = new[]
@@ -298,36 +308,44 @@ namespace ObjectTracingVideoImage.App
                 TrackerType.Hybrid
             };
 
-            numericFpsOverride.Value = new decimal(new int[] { 1000, 0, 0, 0 });
-
-            //ToggleUi(false);
+            numericFpsOverride.Value = new decimal([1000, 0, 0, 0]);
 
             foreach (var trackerType in trackerTypes)
             {
+                LoadCurrentFile();
+                ToggleUi(false);
                 comboBoxTracker.SelectedItem = trackerType;
                 BtnInitTrackerWithGroundTruth_Click(sender, e);
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 _tracker?.Dispose();
                 _trackingLogger.SaveToCsv(_imageDirectory, comboBoxTracker.SelectedItem.ToString()!);
-                // przemylsec czy nie zmienic inicjalizacji ground truth, typu przy zaladowaniu laduj ground truth i wlaczaj lub nie przycisk show ground truth box
-                // przemyslec czy robic ten przycisk toggle ui, niby spoko ale nie wiem
-                // poprawic ui i gotowe
-                BtnReloadFile_Click(sender, e);
             }
 
-            //ToggleUi(true);
+            ToggleUi(true);
 
-            MessageBox.Show($"Benchmark finished.",
-                "Benchmark", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Benchmark finished.", "Benchmark", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _isBenchmarkRunning = false;
+            btnBenchmark.Text = "Start Benchmark";
         }
 
-        //private void ToggleUi(bool enabled)
-        //{
-        //    btnOpen.Enabled = enabled;
-        //    btnStart.Enabled = enabled;
-        //    btnPause.Enabled = enabled;
-        //    btnBenchmark.Enabled = enabled;
-        //}
+        private void ToggleUi(bool enabled)
+        {
+            btnLoadVideo.Enabled = enabled;
+            btnPlayVideo.Enabled = enabled;
+            btnReloadFile.Enabled = enabled;
+            numericFpsOverride.Enabled = enabled;
+            comboBoxTracker.Enabled = enabled;
+            checkBoxTestMode.Enabled = enabled;
+            btnInitTrackerWithGroundTruth.Enabled = enabled;
+            if (enabled)
+            {
+                EnableVisualizeKalmanCheckBox();
+            }
+            else
+            {
+                checkBoxVisualizeKalman.Enabled = false;
+            }
+        }
 
 
         private void BtnViewChart_Click(object sender, EventArgs e)
@@ -396,7 +414,6 @@ namespace ObjectTracingVideoImage.App
             _evaluator = new TrackingEvaluator(_groundTruthData);
 
             _showingCorrectBox = true;
-            btnBenchmark.Enabled = true;
         }
 
         private void LogData(Rectangle? rect, double? iou)
