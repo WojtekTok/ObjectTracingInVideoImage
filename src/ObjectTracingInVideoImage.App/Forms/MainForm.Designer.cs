@@ -1,4 +1,6 @@
-﻿using ObjectTracingInVideoImage.Core.Enums;
+﻿using System.Drawing.Drawing2D;
+using ObjectTracingInVideoImage.Core.Enums;
+using ObjectTracingInVideoImage.App.UIHelpers;
 
 namespace ObjectTracingVideoImage.App
 {
@@ -30,6 +32,7 @@ namespace ObjectTracingVideoImage.App
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             btnLoadVideo = new Button();
             pictureBoxVideo = new PictureBox();
             numericFpsOverride = new NumericUpDown();
@@ -45,6 +48,7 @@ namespace ObjectTracingVideoImage.App
             btnBenchmark = new Button();
             btnViewChart = new Button();
             labelChooseFps = new Label();
+            labelChooseTracker = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericFpsOverride).BeginInit();
             SuspendLayout();
@@ -52,9 +56,10 @@ namespace ObjectTracingVideoImage.App
             // btnLoadVideo
             // 
             btnLoadVideo.BackColor = SystemColors.Control;
-            btnLoadVideo.Location = new Point(12, 12);
+            btnLoadVideo.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            btnLoadVideo.Location = new Point(221, 446);
             btnLoadVideo.Name = "btnLoadVideo";
-            btnLoadVideo.Size = new Size(104, 41);
+            btnLoadVideo.Size = new Size(116, 60);
             btnLoadVideo.TabIndex = 0;
             btnLoadVideo.Text = "Load video file";
             btnLoadVideo.UseVisualStyleBackColor = false;
@@ -63,7 +68,7 @@ namespace ObjectTracingVideoImage.App
             // pictureBoxVideo
             // 
             pictureBoxVideo.BackColor = Color.Black;
-            pictureBoxVideo.Location = new Point(231, 22);
+            pictureBoxVideo.Location = new Point(221, 21);
             pictureBoxVideo.Name = "pictureBoxVideo";
             pictureBoxVideo.Size = new Size(602, 406);
             pictureBoxVideo.TabIndex = 1;
@@ -72,26 +77,30 @@ namespace ObjectTracingVideoImage.App
             pictureBoxVideo.MouseMove += _rectangleSelector.OnMouseMove;
             pictureBoxVideo.Paint += _rectangleSelector.OnPaint;
             pictureBoxVideo.MouseUp += PictureBoxVideo_MouseUp;
+            ControlStyler.RoundControlCorners(pictureBoxVideo, 20);
             // 
             // numericFpsOverride
             // 
-            numericFpsOverride.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             numericFpsOverride.BackColor = SystemColors.Control;
-            numericFpsOverride.Location = new Point(67, 59);
+            numericFpsOverride.Font = new Font("Segoe UI", 12F);
+            numericFpsOverride.Location = new Point(767, 448);
+            numericFpsOverride.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             numericFpsOverride.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericFpsOverride.Name = "numericFpsOverride";
-            numericFpsOverride.Size = new Size(49, 23);
+            numericFpsOverride.Size = new Size(58, 29);
             numericFpsOverride.TabIndex = 2;
             numericFpsOverride.Value = new decimal(new int[] { 30, 0, 0, 0 });
             numericFpsOverride.ValueChanged += NumericFpsOverride_ValueChanged;
+            ControlStyler.RoundControlCorners(numericFpsOverride, 15);
             // 
             // btnPlayVideo
             // 
             btnPlayVideo.BackColor = SystemColors.Control;
             btnPlayVideo.Enabled = false;
-            btnPlayVideo.Location = new Point(12, 88);
+            btnPlayVideo.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            btnPlayVideo.Location = new Point(486, 448);
             btnPlayVideo.Name = "btnPlayVideo";
-            btnPlayVideo.Size = new Size(75, 40);
+            btnPlayVideo.Size = new Size(62, 60);
             btnPlayVideo.TabIndex = 3;
             btnPlayVideo.Text = "▶️";
             btnPlayVideo.UseVisualStyleBackColor = false;
@@ -100,34 +109,38 @@ namespace ObjectTracingVideoImage.App
             // labelFps
             // 
             labelFps.AutoSize = true;
-            labelFps.Location = new Point(16, 146);
+            labelFps.BackColor = Color.Transparent;
+            labelFps.Font = new Font("Segoe UI", 12F);
+            labelFps.Location = new Point(683, 487);
             labelFps.Name = "labelFps";
-            labelFps.Size = new Size(71, 15);
+            labelFps.Size = new Size(92, 21);
             labelFps.TabIndex = 4;
             labelFps.Text = "Actual FPS:-";
             // 
             // comboBoxTracker
             // 
             comboBoxTracker.BackColor = SystemColors.Window;
-            comboBoxTracker.FormattingEnabled = true;
-            comboBoxTracker.Location = new Point(11, 181);
             comboBoxTracker.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxTracker.DataSource = Enum.GetValues(typeof(TrackerType));
             comboBoxTracker.SelectedItem = "KCF";
+            comboBoxTracker.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            comboBoxTracker.FormattingEnabled = true;
+            comboBoxTracker.Location = new Point(26, 68);
             comboBoxTracker.Name = "comboBoxTracker";
-            comboBoxTracker.Size = new Size(121, 23);
+            comboBoxTracker.Size = new Size(148, 29);
             comboBoxTracker.TabIndex = 5;
             comboBoxTracker.SelectedIndexChanged += ComboBoxTracker_SelectedIndexChanged;
+            ControlStyler.RoundControlCorners(comboBoxTracker, 15);
             // 
             // checkBoxTestMode
             // 
-            checkBoxTestMode.Appearance = Appearance.Button;
             checkBoxTestMode.AutoSize = true;
-            checkBoxTestMode.BackColor = SystemColors.Control;
+            checkBoxTestMode.BackColor = Color.Transparent;
             checkBoxTestMode.Enabled = false;
-            checkBoxTestMode.Location = new Point(11, 210);
+            checkBoxTestMode.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            checkBoxTestMode.Location = new Point(26, 115);
             checkBoxTestMode.Name = "checkBoxTestMode";
-            checkBoxTestMode.Size = new Size(120, 25);
+            checkBoxTestMode.Size = new Size(165, 25);
             checkBoxTestMode.TabIndex = 6;
             checkBoxTestMode.Text = "Show Ground Truth\r\n";
             checkBoxTestMode.UseVisualStyleBackColor = false;
@@ -136,9 +149,11 @@ namespace ObjectTracingVideoImage.App
             // labelIoU
             // 
             labelIoU.AutoSize = true;
-            labelIoU.Location = new Point(20, 277);
+            labelIoU.BackColor = Color.Transparent;
+            labelIoU.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            labelIoU.Location = new Point(26, 267);
             labelIoU.Name = "labelIoU";
-            labelIoU.Size = new Size(66, 15);
+            labelIoU.Size = new Size(86, 21);
             labelIoU.TabIndex = 7;
             labelIoU.Text = "Mean IoU:-";
             // 
@@ -146,43 +161,47 @@ namespace ObjectTracingVideoImage.App
             // 
             btnInitTrackerWithGroundTruth.BackColor = SystemColors.Control;
             btnInitTrackerWithGroundTruth.Enabled = false;
-            btnInitTrackerWithGroundTruth.Location = new Point(11, 241);
+            btnInitTrackerWithGroundTruth.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            btnInitTrackerWithGroundTruth.Location = new Point(26, 188);
             btnInitTrackerWithGroundTruth.Name = "btnInitTrackerWithGroundTruth";
-            btnInitTrackerWithGroundTruth.Size = new Size(75, 23);
+            btnInitTrackerWithGroundTruth.Size = new Size(148, 50);
             btnInitTrackerWithGroundTruth.TabIndex = 8;
-            btnInitTrackerWithGroundTruth.Text = "Initialize tracking";
+            btnInitTrackerWithGroundTruth.Text = "Initialize Tracker";
             btnInitTrackerWithGroundTruth.UseVisualStyleBackColor = false;
             btnInitTrackerWithGroundTruth.Click += BtnInitTrackerWithGroundTruth_Click;
             // 
             // labelFramesNumber
             // 
             labelFramesNumber.AutoSize = true;
-            labelFramesNumber.Location = new Point(21, 302);
+            labelFramesNumber.BackColor = Color.Transparent;
+            labelFramesNumber.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            labelFramesNumber.Location = new Point(26, 300);
             labelFramesNumber.Name = "labelFramesNumber";
-            labelFramesNumber.Size = new Size(53, 15);
+            labelFramesNumber.Size = new Size(70, 21);
             labelFramesNumber.TabIndex = 9;
             labelFramesNumber.Text = "Frames:-";
             // 
             // checkBoxVisualizeKalman
             // 
             checkBoxVisualizeKalman.AutoSize = true;
-            checkBoxVisualizeKalman.BackColor = SystemColors.ControlDarkDark;
+            checkBoxVisualizeKalman.BackColor = Color.Transparent;
             checkBoxVisualizeKalman.Enabled = false;
-            checkBoxVisualizeKalman.Location = new Point(21, 344);
+            checkBoxVisualizeKalman.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            checkBoxVisualizeKalman.Location = new Point(26, 146);
             checkBoxVisualizeKalman.Name = "checkBoxVisualizeKalman";
-            checkBoxVisualizeKalman.Size = new Size(143, 19);
+            checkBoxVisualizeKalman.Size = new Size(171, 25);
             checkBoxVisualizeKalman.TabIndex = 10;
-            checkBoxVisualizeKalman.Text = "Visualize Kalman Filter";
+            checkBoxVisualizeKalman.Text = "Show Kalman Tracks";
             checkBoxVisualizeKalman.UseVisualStyleBackColor = false;
             // 
             // btnReloadFile
             // 
             btnReloadFile.BackColor = SystemColors.Control;
             btnReloadFile.Enabled = false;
-            btnReloadFile.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 238);
-            btnReloadFile.Location = new Point(93, 100);
+            btnReloadFile.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 238);
+            btnReloadFile.Location = new Point(572, 459);
             btnReloadFile.Name = "btnReloadFile";
-            btnReloadFile.Size = new Size(31, 28);
+            btnReloadFile.Size = new Size(42, 37);
             btnReloadFile.TabIndex = 11;
             btnReloadFile.Text = "⟲";
             btnReloadFile.UseVisualStyleBackColor = false;
@@ -192,10 +211,11 @@ namespace ObjectTracingVideoImage.App
             // 
             btnBenchmark.BackColor = SystemColors.Control;
             btnBenchmark.Enabled = false;
+            btnBenchmark.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
             btnBenchmark.ForeColor = SystemColors.ControlText;
-            btnBenchmark.Location = new Point(17, 405);
+            btnBenchmark.Location = new Point(26, 373);
             btnBenchmark.Name = "btnBenchmark";
-            btnBenchmark.Size = new Size(141, 32);
+            btnBenchmark.Size = new Size(157, 64);
             btnBenchmark.TabIndex = 12;
             btnBenchmark.Text = "Benchmark trackers";
             btnBenchmark.UseVisualStyleBackColor = false;
@@ -204,9 +224,10 @@ namespace ObjectTracingVideoImage.App
             // btnViewChart
             // 
             btnViewChart.BackColor = SystemColors.Control;
-            btnViewChart.Location = new Point(26, 375);
+            btnViewChart.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            btnViewChart.Location = new Point(26, 452);
             btnViewChart.Name = "btnViewChart";
-            btnViewChart.Size = new Size(112, 25);
+            btnViewChart.Size = new Size(116, 52);
             btnViewChart.TabIndex = 13;
             btnViewChart.Text = "View Chart";
             btnViewChart.UseVisualStyleBackColor = false;
@@ -215,18 +236,34 @@ namespace ObjectTracingVideoImage.App
             // labelChooseFps
             // 
             labelChooseFps.AutoSize = true;
-            labelChooseFps.Location = new Point(13, 61);
+            labelChooseFps.BackColor = Color.Transparent;
+            labelChooseFps.Font = new Font("Segoe UI", 12F);
+            labelChooseFps.Location = new Point(683, 450);
             labelChooseFps.Name = "labelChooseFps";
-            labelChooseFps.Size = new Size(54, 15);
+            labelChooseFps.Size = new Size(72, 21);
             labelChooseFps.TabIndex = 14;
             labelChooseFps.Text = "Max FPS:";
+            // 
+            // labelChooseTracker
+            // 
+            labelChooseTracker.AutoSize = true;
+            labelChooseTracker.BackColor = Color.Transparent;
+            labelChooseTracker.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 238);
+            labelChooseTracker.Location = new Point(26, 44);
+            labelChooseTracker.Name = "labelChooseTracker";
+            labelChooseTracker.Size = new Size(116, 21);
+            labelChooseTracker.TabIndex = 15;
+            labelChooseTracker.Text = "Chosen Tracker";
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(845, 450);
+            BackColor = Color.White;
+            BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
+            BackgroundImageLayout = ImageLayout.Stretch;
+            ClientSize = new Size(845, 530);
+            Controls.Add(labelChooseTracker);
             Controls.Add(labelChooseFps);
             Controls.Add(btnViewChart);
             Controls.Add(btnBenchmark);
@@ -243,7 +280,7 @@ namespace ObjectTracingVideoImage.App
             Controls.Add(pictureBoxVideo);
             Controls.Add(btnLoadVideo);
             Name = "MainForm";
-            Text = "Video object tracer";
+            Text = "Video Object Tracker";
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericFpsOverride).EndInit();
             ResumeLayout(false);
@@ -267,5 +304,6 @@ namespace ObjectTracingVideoImage.App
         private Button btnBenchmark;
         private Button btnViewChart;
         private Label labelChooseFps;
+        private Label labelChooseTracker;
     }
 }
