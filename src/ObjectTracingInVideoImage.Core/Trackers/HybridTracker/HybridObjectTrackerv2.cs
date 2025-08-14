@@ -30,6 +30,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
         private bool _wasLastTrackingSuccessful = false;
         private int _framesCountSinceKcf = 0;
 
+        public TrackerType LastUsedTracker { get; private set; }
+
         public HybridObjectTrackerv2()
         {
             _siamApiClient = new SiamMaskApiClient();
@@ -72,6 +74,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
 
             if (_frameCountSinceSiam >= FramesEverySiamTrack || !_wasLastTrackingSuccessful)
             {
+                LastUsedTracker = TrackerType.Siammask;
+
                 PointF roi = predictedCenter;
 
                 if (_consecutiveSiamFailures >= MaxSiamFailures && _consecutiveSiamFailures % 2 == 0 && _lastValidDetection.HasValue)
@@ -123,6 +127,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
             }
 
             Rectangle? trackedRect = TrackClassicTracker(frame);
+            LastUsedTracker = _currentTrackerType;
+
             if (trackedRect.HasValue)
             {
                 PointF observed = new PointF(

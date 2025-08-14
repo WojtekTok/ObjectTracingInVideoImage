@@ -408,3 +408,4 @@ FodyWeavers.xsd
 src/ObjectTracingInVideoImage.Core/Models
 siam-server/commands.txt
 assets/LaSOT
+src/ObjectTracingInVideoImage.App/TrackingResults
