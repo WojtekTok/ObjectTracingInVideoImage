@@ -1,48 +1,62 @@
-﻿using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.Structure;
-using System.Drawing;
+﻿using System.Drawing;
+using Emgu.CV;
+using ObjectTracingInVideoImage.Core.KalmanFilter;
 
 namespace ObjectTracingInVideoImage.Core.Trackers
 {
-    public class Test : IObjectTracker
+    public class Test : IObjectTracker, IKalmanTracker
     {
-        private Mat? _template;
-        private Size _templateSize;
+        private TrackerKCF? _tracker;
+        private readonly IKalmanFilter2D _kalman;
+        public KalmanData _kalmanData = new();
+
+        public Test()
+        {
+            _kalman = new KalmanFilter2D();
+        }
 
         public void Initialize(Mat initialFrame, Rectangle selection)
         {
-            _template?.Dispose();
+            _tracker?.Dispose();
+            _tracker = new TrackerKCF();
+            _tracker.Init(initialFrame, selection);
 
-            if (selection.X < 0 || selection.Y < 0 ||
-                selection.Right > initialFrame.Width ||
-                selection.Bottom > initialFrame.Height)
-                throw new ArgumentException("Selection out of bounds");
-
-            _template = new Mat(initialFrame, selection);
-            _templateSize = selection.Size;
+            PointF center = new PointF(selection.X + selection.Width / 2f, selection.Y + selection.Height / 2f);
+            _kalman.Init(center);
+            _kalmanData.PredictedPath.Clear();
+            _kalmanData.ObservedPath.Clear();
         }
 
         public Rectangle? Track(Mat frame)
         {
-            if (_template == null || frame == null || frame.IsEmpty)
+            if (_tracker is null)
                 return null;
 
-            var result = new Mat();
-            CvInvoke.MatchTemplate(frame, _template, result, TemplateMatchingType.CcorrNormed);
+            Rectangle trackedRect = new Rectangle();
+            bool success = _tracker.Update(frame, out trackedRect);
 
-            // szukamy maksymalnej korelacji
-            result.MinMax(out _, out double[] maxVal, out _, out Point[] maxLoc);
+            PointF predicted = _kalman.Predict();
+            _kalmanData.PredictedPath.Add(Point.Round(predicted));
 
-            if (maxVal[0] < 0.7) // próg – do eksperymentowania
-                return null;
+            if (success)
+            {
+                PointF observed = new PointF(trackedRect.X + trackedRect.Width / 2f, trackedRect.Y + trackedRect.Height / 2f);
+                _kalman.Correct(observed);
+                _kalmanData.ObservedPath.Add(Point.Round(observed));
+            }
 
-            return new Rectangle(maxLoc[0], _templateSize);
+            return success ? trackedRect : null;
+        }
+
+        public KalmanData GetKalmanData()
+        {
+            return _kalmanData;
         }
 
         public void Dispose()
         {
-            _template?.Dispose();
+            _tracker?.Dispose();
+            _tracker = null;
         }
     }
 }

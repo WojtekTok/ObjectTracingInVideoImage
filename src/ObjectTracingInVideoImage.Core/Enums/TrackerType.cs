@@ -4,7 +4,12 @@
     {
         KCF,
         CSRT,
+        MIL,
         Siammask,
+        Hybrid_KCF,
+        Hybrid_CSRT,
+        Hybrid_MIL,
+        Hybrid,
         Test
     }
 }
