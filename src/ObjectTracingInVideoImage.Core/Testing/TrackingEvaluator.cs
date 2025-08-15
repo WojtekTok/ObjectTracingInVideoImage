@@ -29,7 +29,7 @@ namespace ObjectTracingInVideoImage.Core.Testing
             return 0;
         }
 
-        public double MeanIoU => _testedFrames > 0 ? _ious.Sum()/_testedFrames : 0;
+        public double MeanIoU => _testedFrames > 0 ? _ious.Sum() / _testedFrames : 0;
         public double MinIoU => _testedFrames > 0 ? _ious.Min() : 0;
         public double MaxIoU => _testedFrames > 0 ? _ious.Max() : 0;
         public int TestedFrames => _testedFrames;
@@ -43,6 +43,11 @@ namespace ObjectTracingInVideoImage.Core.Testing
             double unionArea = a.Width * a.Height + b.Width * b.Height - interArea;
             return interArea / unionArea;
         }
-    }
 
+        public void Reset()
+        {
+            _ious.Clear();
+            _testedFrames = 0;
+        }
+    }
 }

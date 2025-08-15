@@ -301,11 +301,11 @@ namespace ObjectTracingVideoImage.App
 
             var trackerTypes = new[]
             {
+                TrackerType.Siammask,
+                TrackerType.Hybrid,
                 TrackerType.KCF,
                 TrackerType.CSRT,
-                TrackerType.MIL,
-                TrackerType.Siammask,
-                TrackerType.Hybrid
+                TrackerType.MIL
             };
 
             numericFpsOverride.Value = new decimal([1000, 0, 0, 0]);
@@ -396,6 +396,7 @@ namespace ObjectTracingVideoImage.App
                 if(checkBoxTestMode.Checked)
                     SetGroundTruthData();
                 _testFrameCounter = 0;
+                _evaluator.Reset();
                 btnReloadFile.Enabled = true;
             }
         }

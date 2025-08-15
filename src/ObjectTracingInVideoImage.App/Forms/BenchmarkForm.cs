@@ -209,7 +209,7 @@ namespace ObjectTracingInVideoImage.App.Forms
 
             DataTable table = new DataTable();
             table.Columns.Add("Tracker");
-            table.Columns.Add("Time");
+            table.Columns.Add("Mean FPS");
             table.Columns.Add("Mean IoU");
             table.Columns.Add("% of Positive Results");
             if (multipleTrackers)
