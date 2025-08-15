@@ -1,4 +1,5 @@
 ﻿using System.Drawing.Drawing2D;
+using ObjectTracingInVideoImage.App.UIHelpers;
 
 namespace ObjectTracingInVideoImage.App.Forms
 {
@@ -30,7 +31,10 @@ namespace ObjectTracingInVideoImage.App.Forms
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(BenchmarkForm));
             benchmarkPlot = new ScottPlot.WinForms.FormsPlot();
+            resultsGrid = new DataGridView();
+            ((System.ComponentModel.ISupportInitialize)resultsGrid).BeginInit();
             SuspendLayout();
             // 
             // benchmarkPlot
@@ -39,32 +43,44 @@ namespace ObjectTracingInVideoImage.App.Forms
             benchmarkPlot.DisplayScale = 1F;
             benchmarkPlot.Location = new Point(12, 12);
             benchmarkPlot.Name = "benchmarkPlot";
-            benchmarkPlot.Size = new Size(1111, 261);
+            benchmarkPlot.Size = new Size(1111, 327);
             benchmarkPlot.TabIndex = 0;
-
-            var path = new GraphicsPath();
-            int radius = 20;
-            path.AddArc(0, 0, radius, radius, 180, 90);
-            path.AddArc(benchmarkPlot.Width - radius, 0, radius, radius, 270, 90);
-            path.AddArc(benchmarkPlot.Width - radius, benchmarkPlot.Height - radius, radius, radius, 0, 90);
-            path.AddArc(0, benchmarkPlot.Height - radius, radius, radius, 90, 90);
-            path.CloseAllFigures();
-            benchmarkPlot.Region = new Region(path);
+            benchmarkPlot.Plot.Title($"IoU over Time – {Path.GetFileName(_csvPath)}");
+            benchmarkPlot.Plot.Axes.Left.Label.Text = "IoU";
+            benchmarkPlot.Plot.Axes.Bottom.Label.Text = "Frame";
+            benchmarkPlot.Plot.Legend.IsVisible = true;
+            benchmarkPlot.Plot.Legend.Alignment = ScottPlot.Alignment.LowerLeft;
+            ControlStyler.RoundControlCorners(benchmarkPlot, 20);
+            // 
+            // resultsGrid
+            // 
+            resultsGrid.BackgroundColor = SystemColors.Control;
+            resultsGrid.BorderStyle = BorderStyle.None;
+            resultsGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            resultsGrid.Location = new Point(12, 359);
+            resultsGrid.Name = "resultsGrid";
+            resultsGrid.Size = new Size(1111, 210);
+            resultsGrid.TabIndex = 1;
+            ControlStyler.RoundControlCorners(resultsGrid, 20);
             // 
             // BenchmarkForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(1135, 414);
+            BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
+            ClientSize = new Size(1135, 583);
+            Controls.Add(resultsGrid);
             Controls.Add(benchmarkPlot);
             Name = "BenchmarkForm";
-            Text = "BenchmarkForm";
+            Text = "Test Result Data";
+            ((System.ComponentModel.ISupportInitialize)resultsGrid).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
         private ScottPlot.WinForms.FormsPlot benchmarkPlot;
+        private DataGridView resultsGrid;
     }
 }

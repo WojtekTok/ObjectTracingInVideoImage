@@ -48,8 +48,7 @@ namespace ObjectTracingInVideoImage.Core.Testing.Logging
 
         private string GetFullPathToSaveBenchmarkData(string imageDirectory, string trackerName)
         {
-            string? directory = Path.GetDirectoryName(imageDirectory);
-            string folderName = Path.GetFileName(directory ?? string.Empty);
+            string folderName = Path.GetFileName(imageDirectory ?? string.Empty);
             string baseDir = AppContext.BaseDirectory;
             string projectRoot = Path.GetFullPath(Path.Combine(baseDir, @"..\..\.."));
             var folderPath = Path.Combine(projectRoot, "TrackingResults");

@@ -279,6 +279,7 @@ namespace ObjectTracingVideoImage.App
             Controls.Add(numericFpsOverride);
             Controls.Add(pictureBoxVideo);
             Controls.Add(btnLoadVideo);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "MainForm";
             Text = "Video Object Tracker";
             ((System.ComponentModel.ISupportInitialize)pictureBoxVideo).EndInit();

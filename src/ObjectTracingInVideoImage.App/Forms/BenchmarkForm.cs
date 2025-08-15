@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Data;
+using System.Globalization;
 using Color = System.Drawing.Color;
 
 namespace ObjectTracingInVideoImage.App.Forms
@@ -6,31 +7,35 @@ namespace ObjectTracingInVideoImage.App.Forms
     public partial class BenchmarkForm : Form
     {
         private readonly string _csvPath;
+        private List<int> _frames;
+        private List<double> _ious;
+        private List<bool> _detected;
+        private List<string?> _trackers;
 
         public BenchmarkForm(string csvPath)
         {
             InitializeComponent();
             _csvPath = csvPath;
             LoadChart();
+            ShowSummary();
         }
 
         private void LoadChart()
         {
-            var (frameList, iouList, detectedList, trackerList) = LoadCsvData(_csvPath);
-            if (iouList.Count() < 1)
+            LoadCsvData(_csvPath);
+            if (_ious.Count() < 1)
                 throw new ArgumentOutOfRangeException("Could not retreive IoU list");
 
             benchmarkPlot.Plot.Clear();
 
-            var segments = BuildSegments(frameList, iouList, detectedList, trackerList);
+            var segments = BuildSegments();
 
             PlotSegments(segments);
 
-            StylePlot();
             benchmarkPlot.Refresh();
         }
 
-        private (List<int> frames, List<double> ious, List<bool> detected, List<string?> trackers) LoadCsvData(string path)
+        private void LoadCsvData(string path)
         {
             var frames = new List<int>();
             var ious = new List<double>();
@@ -52,21 +57,20 @@ namespace ObjectTracingInVideoImage.App.Forms
                 }
             }
 
-            return (frames, ious, detected, trackers);
+            _frames = frames;
+            _ious = ious;
+            _detected = detected;
+            _trackers = trackers;
         }
 
-        private List<(List<double> x, List<double> y, Color color, string label)> BuildSegments(
-            List<int> frameList,
-            List<double> iouList,
-            List<bool> detectedList,
-            List<string?> trackerList)
+        private List<(List<double> x, List<double> y, Color color, string label)> BuildSegments()
         {
             var colorMap = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
             {
                 ["kcf"] = Color.Orange,
-                ["csrt"] = Color.DodgerBlue,
-                ["mil"] = Color.MediumPurple,
-                ["siammask"] = Color.DeepPink,
+                ["csrt"] = Color.MediumTurquoise,
+                ["mil"] = Color.DodgerBlue,
+                ["siammask"] = Color.MediumOrchid,
             };
 
             var labelMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -77,20 +81,20 @@ namespace ObjectTracingInVideoImage.App.Forms
                 ["siammask"] = "SiamMask",
             };
 
-            Color noDetectionColor = Color.LightGray;
+            Color noDetectionColor = Color.DarkGray;
             string noDetectionLabel = "Failed";
 
             var segments = new List<(List<double> x, List<double> y, Color color, string label)>();
 
             List<double> currentX = new();
             List<double> currentY = new();
-            string? currentTracker = trackerList[0];
-            bool currentDetected = detectedList[0];
+            string? currentTracker = _trackers[0];
+            bool currentDetected = _detected[0];
 
-            for (int i = 0; i < frameList.Count; i++)
+            for (int i = 0; i < _frames.Count; i++)
             {
-                string? tracker = trackerList[i];
-                bool detected = detectedList[i];
+                string? tracker = _trackers[i];
+                bool detected = _detected[i];
 
                 if (tracker != currentTracker || detected != currentDetected)
                 {
@@ -108,16 +112,16 @@ namespace ObjectTracingInVideoImage.App.Forms
 
                         currentX.Clear();
                         currentY.Clear();
-                        currentX.Add(frameList[i - 1]);
-                        currentY.Add(iouList[i - 1]);
+                        currentX.Add(_frames[i - 1]);
+                        currentY.Add(_ious[i - 1]);
                     }
 
                     currentTracker = tracker;
                     currentDetected = detected;
                 }
 
-                currentX.Add(frameList[i]);
-                currentY.Add(iouList[i]);
+                currentX.Add(_frames[i]);
+                currentY.Add(_ious[i]);
             }
 
             if (currentX.Count > 0)
@@ -156,15 +160,114 @@ namespace ObjectTracingInVideoImage.App.Forms
             }
         }
 
-        private void StylePlot()
+        private void ShowSummary()
         {
-            string fileName = Path.GetFileName(_csvPath);
-            benchmarkPlot.Plot.Title($"IoU over Time – {fileName}");
-            benchmarkPlot.Plot.Axes.Left.Label.Text = "IoU";
-            benchmarkPlot.Plot.SetStyle(new ScottPlot.PlotStyles.Dark());
-            benchmarkPlot.Plot.Legend.IsVisible = true;
-            benchmarkPlot.Plot.Legend.Alignment = ScottPlot.Alignment.LowerLeft;
-            benchmarkPlot.Plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.EmptyTickGenerator();
+            double? totalTime = GetTotalTimeFromCsv(_csvPath);
+            var trackerGroups = CalculateTrackerStats(_frames, _trackers, _ious, _detected);
+            DataTable table = BuildSummaryTable(trackerGroups, totalTime, _ious, _detected, _frames.Count);
+            DisplayResults(table);
+        }
+
+        private double? GetTotalTimeFromCsv(string csvPath)
+        {
+            var lastLine = File.ReadLines(csvPath).Last();
+            if (double.TryParse(lastLine.Split(',')[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double sec))
+                return sec;
+            return null;
+        }
+
+        private Dictionary<string, (double AvgIoU, double AccuracyPercent, int UsageCount)> CalculateTrackerStats(
+            List<int> frames, List<string> trackers, List<double> ious, List<bool> detected)
+        {
+            return frames
+                .Select((f, i) => new
+                {
+                    Tracker = trackers[i] ?? "unknown",
+                    IoU = ious[i],
+                    Detected = detected[i]
+                })
+                .GroupBy(x => x.Tracker)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (
+                        AvgIoU: g.Average(r => r.IoU),
+                        AccuracyPercent: g.Count(r => r.Detected) * 100.0 / g.Count(),
+                        UsageCount: g.Count()
+                    )
+                );
+        }
+
+        private DataTable BuildSummaryTable(
+            Dictionary<string, (double AvgIoU, double AccuracyPercent, int UsageCount)> trackerGroups,
+            double? totalTime,
+            List<double> ious,
+            List<bool> detected,
+            int totalCount)
+        {
+            var distinctTrackers = trackerGroups.Keys.ToList();
+            bool multipleTrackers = distinctTrackers.Count > 1;
+
+            DataTable table = new DataTable();
+            table.Columns.Add("Tracker");
+            table.Columns.Add("Time");
+            table.Columns.Add("Mean IoU");
+            table.Columns.Add("% of Positive Results");
+            if (multipleTrackers)
+                table.Columns.Add("% of Times Used");
+
+            if (multipleTrackers)
+            {
+                table.Rows.Add(
+                    "General",
+                    totalTime?.ToString("F2") ?? "-",
+                    ious.Average().ToString("F3"),
+                    (detected.Count(d => d) * 100.0 / detected.Count).ToString("F2"),
+                    "-"
+                );
+
+                foreach (var kv in trackerGroups)
+                {
+                    var tracker = kv.Key;
+                    var stats = kv.Value;
+                    table.Rows.Add(
+                        tracker,
+                        "-",
+                        stats.AvgIoU.ToString("F3"),
+                        stats.AccuracyPercent.ToString("F2"),
+                        ((double)stats.UsageCount / totalCount * 100.0).ToString("F2")
+                    );
+                }
+            }
+            else
+            {
+                var tracker = distinctTrackers.First();
+                var stats = trackerGroups[tracker];
+                table.Rows.Add(
+                    tracker,
+                    totalTime?.ToString("F2") ?? "-",
+                    stats.AvgIoU.ToString("F3"),
+                    stats.AccuracyPercent.ToString("F2")
+                );
+            }
+
+            return table;
+        }
+
+        private void DisplayResults(DataTable table)
+        {
+            if (resultsGrid == null)
+            {
+                resultsGrid = new DataGridView
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 120,
+                    ReadOnly = true,
+                    AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                };
+                Controls.Add(resultsGrid);
+            }
+
+            resultsGrid.DataSource = table;
         }
 
     }
