@@ -393,10 +393,15 @@ namespace ObjectTracingVideoImage.App
                     pictureBoxVideo.Image = _lastFrame.ToBitmap();
                 }
                 _imageDirectory = Path.GetDirectoryName(Path.GetDirectoryName(_filePath)) ?? string.Empty;
+                
                 if(checkBoxTestMode.Checked)
                     SetGroundTruthData();
+                
                 _testFrameCounter = 0;
-                _evaluator.Reset();
+
+                if (_evaluator != null)
+                    _evaluator.Reset();
+
                 btnReloadFile.Enabled = true;
             }
         }
