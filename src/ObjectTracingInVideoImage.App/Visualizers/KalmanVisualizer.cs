@@ -13,10 +13,10 @@ namespace ObjectTracingInVideoImage.App.Visuralizers
             var observedPath = data.ObservedPath;
 
             for (int i = 1; i < predictedPath.Count; i++)
-                CvInvoke.Line(img, predictedPath[i - 1], predictedPath[i], new MCvScalar(255, 0, 0), 2); // niebieska: predykcja
+                CvInvoke.Line(img, predictedPath[i - 1], predictedPath[i], new MCvScalar(255, 0, 0), 2);
 
             for (int i = 1; i < observedPath.Count; i++)
-                CvInvoke.Line(img, observedPath[i - 1], observedPath[i], new MCvScalar(0, 0, 255), 2); // czerwona: obserwacja
+                CvInvoke.Line(img, observedPath[i - 1], observedPath[i], new MCvScalar(0, 0, 255), 2);
 
             if (predictedPath.Count > 0)
                 CvInvoke.Circle(img, predictedPath[^1], 4, new MCvScalar(255, 0, 0), -1);

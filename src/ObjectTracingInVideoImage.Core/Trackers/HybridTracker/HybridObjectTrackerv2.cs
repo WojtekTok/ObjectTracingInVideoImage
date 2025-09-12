@@ -95,7 +95,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.HybridTracker
                         siamResult.Value.Y + siamResult.Value.Height / 2f);
 
                     observed = ClampToFrame(observed, frame);
-                    _kalmanData.AddPredictedPoint(observed);
+                    //_kalmanData.AddPredictedPoint(observed); // wut???
+                    _kalman.Correct(observed); // chyba tak, do testów i jeśli tak to dodać do pseudokodu
                     _kalmanData.AddObservedPoint(observed);
 
                     var currentClassicResult = TrackClassicTracker(frame);

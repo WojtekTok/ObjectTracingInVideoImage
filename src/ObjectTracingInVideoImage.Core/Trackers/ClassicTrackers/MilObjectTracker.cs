@@ -13,8 +13,8 @@ namespace ObjectTracingInVideoImage.Core.Trackers.ClassicTrackers
             _tracker = new();
             selection.X = Math.Max(0, selection.X);
             selection.Y = Math.Max(0, selection.Y);
-            selection.Width = Math.Min(selection.Width, initialFrame.Width - selection.X);
-            selection.Height = Math.Min(selection.Height, initialFrame.Height - selection.Y);
+            selection.Width = Math.Min(selection.Width, initialFrame.Width - selection.X-1);
+            selection.Height = Math.Min(selection.Height, initialFrame.Height - selection.Y-1);
             _tracker.Init(initialFrame, selection);
         }
 

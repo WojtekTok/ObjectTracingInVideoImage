@@ -262,7 +262,6 @@ namespace ObjectTracingVideoImage.App
             {
                 var kalmanTrackers = new List<TrackerType>
                 {
-                    TrackerType.Test,
                     TrackerType.Hybrid_KCF,
                     TrackerType.Hybrid_CSRT,
                     TrackerType.Hybrid_MIL,
@@ -301,11 +300,11 @@ namespace ObjectTracingVideoImage.App
 
             var trackerTypes = new[]
             {
+                TrackerType.Siammask,
+                TrackerType.Hybrid,
                 TrackerType.KCF,
                 TrackerType.CSRT,
-                TrackerType.MIL,
-                TrackerType.Siammask,
-                TrackerType.Hybrid
+                TrackerType.MIL
             };
 
             numericFpsOverride.Value = new decimal([1000, 0, 0, 0]);
@@ -316,6 +315,7 @@ namespace ObjectTracingVideoImage.App
                 ToggleUi(false);
                 comboBoxTracker.SelectedItem = trackerType;
                 BtnInitTrackerWithGroundTruth_Click(sender, e);
+                await Task.Delay(100);
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 _tracker?.Dispose();
                 _trackingLogger.SaveToCsv(_imageDirectory, comboBoxTracker.SelectedItem.ToString()!);
@@ -393,9 +393,15 @@ namespace ObjectTracingVideoImage.App
                     pictureBoxVideo.Image = _lastFrame.ToBitmap();
                 }
                 _imageDirectory = Path.GetDirectoryName(Path.GetDirectoryName(_filePath)) ?? string.Empty;
+                
                 if(checkBoxTestMode.Checked)
                     SetGroundTruthData();
+                
                 _testFrameCounter = 0;
+
+                if (_evaluator != null)
+                    _evaluator.Reset();
+
                 btnReloadFile.Enabled = true;
             }
         }
