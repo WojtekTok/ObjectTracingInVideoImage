@@ -65,6 +65,8 @@ namespace ObjectTracingInVideoImage.App.Forms
 
         private List<(List<double> x, List<double> y, Color color, string label)> BuildSegments()
         {
+
+            benchmarkPlot.Plot.Title($"IoU over Time – {Path.GetFileName(_csvPath)}");
             var colorMap = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
             {
                 ["kcf"] = Color.Orange,
@@ -81,7 +83,7 @@ namespace ObjectTracingInVideoImage.App.Forms
                 ["siammask"] = "SiamMask",
             };
 
-            Color noDetectionColor = Color.DarkGray;
+            Color noDetectionColor = Color.Black;
             string noDetectionLabel = "Failed";
 
             var segments = new List<(List<double> x, List<double> y, Color color, string label)>();

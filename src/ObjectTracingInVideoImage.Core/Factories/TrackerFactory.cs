@@ -12,7 +12,6 @@ namespace ObjectTracingInVideoImage.Core.Factories
             return type switch
             {
                 TrackerType.KCF => new KcfObjectTracker(),
-                TrackerType.Test => new Test(),
                 TrackerType.CSRT => new CsrtObjectTracker(),
                 TrackerType.Siammask => new SiammaskObjectTracker(),
                 TrackerType.MIL => new MilObjectTracker(),

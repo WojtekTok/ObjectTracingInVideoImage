@@ -45,7 +45,6 @@ namespace ObjectTracingInVideoImage.App.Forms
             benchmarkPlot.Name = "benchmarkPlot";
             benchmarkPlot.Size = new Size(1111, 327);
             benchmarkPlot.TabIndex = 0;
-            benchmarkPlot.Plot.Title($"IoU over Time – {Path.GetFileName(_csvPath)}");
             benchmarkPlot.Plot.Axes.Left.Label.Text = "IoU";
             benchmarkPlot.Plot.Axes.Bottom.Label.Text = "Frame";
             benchmarkPlot.Plot.Legend.IsVisible = true;

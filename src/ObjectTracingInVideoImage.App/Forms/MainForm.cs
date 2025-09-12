@@ -262,7 +262,6 @@ namespace ObjectTracingVideoImage.App
             {
                 var kalmanTrackers = new List<TrackerType>
                 {
-                    TrackerType.Test,
                     TrackerType.Hybrid_KCF,
                     TrackerType.Hybrid_CSRT,
                     TrackerType.Hybrid_MIL,
@@ -316,6 +315,7 @@ namespace ObjectTracingVideoImage.App
                 ToggleUi(false);
                 comboBoxTracker.SelectedItem = trackerType;
                 BtnInitTrackerWithGroundTruth_Click(sender, e);
+                await Task.Delay(100);
                 await _playerManager.StartVideoAsync(ProcessFrameAsync);
                 _tracker?.Dispose();
                 _trackingLogger.SaveToCsv(_imageDirectory, comboBoxTracker.SelectedItem.ToString()!);
